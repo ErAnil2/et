@@ -227,3 +227,66 @@ def main(args) -> int:
         return 0
     finally:
         conn.close()
+
+
+import json
+
+_LLM_CACHE_DIR = Path("data/llm_cache")
+_LLM_BUDGET_PER_RUN = 500
+
+try:
+    import claude_code_sdk  # type: ignore  # noqa: F401
+    _SDK_AVAILABLE = True
+except ImportError:
+    _SDK_AVAILABLE = False
+
+
+def _call_claude_sdk(prompt: str) -> dict[str, Any]:
+    """Invoke Claude Code SDK for a single classification call.
+
+    Tests patch this function directly to avoid live SDK calls.
+    """
+    if not _SDK_AVAILABLE:
+        raise RuntimeError("claude-code-sdk not installed; pip install -e '.[llm]'")
+    import asyncio
+
+    import claude_code_sdk
+
+    async def _run() -> str:
+        chunks: list[str] = []
+        async for msg in claude_code_sdk.query(prompt=prompt):
+            for block in getattr(msg, "content", []) or []:
+                text = getattr(block, "text", None)
+                if text:
+                    chunks.append(text)
+        return "".join(chunks)
+
+    raw = asyncio.run(_run())
+    start = raw.find("{")
+    end = raw.rfind("}")
+    if start == -1 or end == -1:
+        raise ValueError(f"no JSON in LLM response: {raw[:200]!r}")
+    return json.loads(raw[start:end + 1])
+
+
+def llm_classify(title: str, lane_slugs: list[str],
+                 format_slugs: list[str]) -> dict[str, Any]:
+    """Classify a title via Claude Code SDK with on-disk cache."""
+    _LLM_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    h = hashlib.sha1(title.encode("utf-8")).hexdigest()
+    cache_file = _LLM_CACHE_DIR / f"{h}.json"
+    if cache_file.exists():
+        return json.loads(cache_file.read_text(encoding="utf-8"))
+
+    prompt = (
+        f"You are a news taxonomy classifier. Return JSON only.\n"
+        f"Title: {title}\n"
+        f"Possible lanes: {', '.join(lane_slugs)}\n"
+        f"Possible formats: {', '.join(format_slugs)}\n"
+        f'Reply with {{"lanes": [slug...], "format": "slug", '
+        f'"entities": [{{"text": "...", "type": "PERSON|ORG|GPE|PRODUCT|EVENT"}}], '
+        f'"confidence": 0.0-1.0}}'
+    )
+    result = _call_claude_sdk(prompt)
+    cache_file.write_text(json.dumps(result), encoding="utf-8")
+    return result
