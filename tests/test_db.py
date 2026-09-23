@@ -23,7 +23,7 @@ def test_apply_schema_is_idempotent(tmp_path: Path):
     )}
     assert "sources" in tables
     (uv,) = conn.execute("PRAGMA user_version").fetchone()
-    assert uv == 1
+    assert uv == 2
 
 
 def test_upsert_inserts_and_updates(tmp_path: Path):

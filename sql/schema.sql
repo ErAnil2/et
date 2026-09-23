@@ -1,4 +1,4 @@
-PRAGMA user_version = 1;
+PRAGMA user_version = 2;
 
 CREATE TABLE IF NOT EXISTS sources (
   source_id     TEXT PRIMARY KEY,
@@ -101,6 +101,49 @@ CREATE TABLE IF NOT EXISTS gsc_discover (
 );
 CREATE INDEX IF NOT EXISTS idx_gsc_country_date ON gsc_discover(country, date DESC);
 
+-- ============================================================================
+-- Sprint 2 additions (added 2026-09-24). CREATE TABLE IF NOT EXISTS so
+-- Sprint-1 warehouses upgrade cleanly — only the new tables get created.
+-- ============================================================================
+
+-- Written by S2-B analysis/match_outcomes.py.
+-- One row per (item, discover_observation) match. Best-match cascade fills
+-- match_type/score. INSERT OR IGNORE keeps the first (best) stage.
+CREATE TABLE IF NOT EXISTS item_outcomes (
+  item_id       TEXT NOT NULL REFERENCES items(item_id),
+  obs_id        TEXT NOT NULL REFERENCES discover_articles(obs_id),
+  match_type    TEXT NOT NULL CHECK (match_type IN ('url','canonical','title_exact','title_fuzzy')),
+  match_score   REAL NOT NULL,
+  matched_at    TEXT NOT NULL,
+  PRIMARY KEY (item_id, obs_id)
+);
+CREATE INDEX IF NOT EXISTS idx_item_outcomes_obs  ON item_outcomes(obs_id);
+CREATE INDEX IF NOT EXISTS idx_item_outcomes_type ON item_outcomes(match_type);
+
+-- Seeded from config/lane_keywords.yaml + config/format_rules.yaml on startup.
+-- Kind='lane' | 'format' | 'entity_type'. Slug taxonomy_id like 'lane:tech_ai'.
+CREATE TABLE IF NOT EXISTS taxonomy (
+  taxonomy_id   TEXT PRIMARY KEY,
+  kind          TEXT NOT NULL CHECK (kind IN ('lane','format','entity_type')),
+  label         TEXT NOT NULL,
+  parent_id     TEXT,
+  in_et_lane    INTEGER NOT NULL DEFAULT 1
+);
+
+-- Written by S2-C analysis/tag_entities.py. Serves both items and discover
+-- observations through a source_key prefix ('item:<item_id>' or 'obs:<obs_id>').
+CREATE TABLE IF NOT EXISTS item_entities (
+  entry_id      TEXT PRIMARY KEY,
+  source_key    TEXT NOT NULL,
+  entity        TEXT NOT NULL,
+  entity_type   TEXT,
+  taxonomy_id   TEXT,
+  confidence    REAL NOT NULL,
+  tagged_at     TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_item_entities_source ON item_entities(source_key);
+CREATE INDEX IF NOT EXISTS idx_item_entities_ent    ON item_entities(entity);
+CREATE INDEX IF NOT EXISTS idx_item_entities_tax    ON item_entities(taxonomy_id);
+
 -- Reserved table names for future sprints (do not create yet):
---   Sprint 2: item_outcomes, taxonomy
 --   Sprint 3: topic_stats, topic_scores, article_scores
