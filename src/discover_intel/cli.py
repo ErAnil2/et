@@ -11,6 +11,7 @@ from discover_intel import db
 SUBCOMMANDS = (
     "init-db", "seed-sources", "feeds", "import-discover", "import-snapshot",
     "gsc", "backup", "vacuum", "db-stats",
+    "resolve-urls", "match-outcomes", "tag-entities", "toi-ga",
 )
 
 
@@ -74,6 +75,35 @@ def _build_parser() -> argparse.ArgumentParser:
 
     p_stats = sub.add_parser("db-stats", help="print row counts per table")
     p_stats.add_argument("--db", required=True)
+
+    p_res = sub.add_parser("resolve-urls",
+                           help="decode/HEAD-resolve Google News URLs -> items.canonical_url")
+    p_res.add_argument("--db", required=True)
+    p_res.add_argument("--limit", type=int, default=500)
+    p_res.add_argument("--dry-run", action="store_true")
+
+    p_match = sub.add_parser("match-outcomes",
+                             help="link discover_articles to items -> item_outcomes")
+    p_match.add_argument("--db", required=True)
+    p_match.add_argument("--since", type=int, default=72,
+                         help="only match obs observed within the last N hours")
+    p_match.add_argument("--dry-run", action="store_true")
+
+    p_tag = sub.add_parser("tag-entities",
+                           help="tag items and observations with entities/lanes/formats")
+    p_tag.add_argument("--db", required=True)
+    p_tag.add_argument("--source", choices=("items", "obs", "both"), default="both")
+    p_tag.add_argument("--limit", type=int, default=5000)
+    p_tag.add_argument("--llm", action="store_true",
+                       help="run Claude Code LLM pass on items with zero rule hits")
+    p_tag.add_argument("--dry-run", action="store_true")
+
+    p_toi = sub.add_parser("toi-ga",
+                           help="pull TOI Discover-attributed traffic via GA Data API")
+    p_toi.add_argument("--db", required=True)
+    p_toi.add_argument("--start", default=None, help="YYYY-MM-DD; default: end-3d")
+    p_toi.add_argument("--end", default=None, help="YYYY-MM-DD; default: yesterday UTC")
+    p_toi.add_argument("--dry-run", action="store_true")
 
     return p
 
@@ -140,6 +170,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         return vacuum_main(args)
     if args.cmd == "db-stats":
         return cmd_db_stats(args)
+    if args.cmd == "resolve-urls":
+        from discover_intel.analysis.resolve_urls import main as res_main
+        return res_main(args)
+    if args.cmd == "match-outcomes":
+        from discover_intel.analysis.match_outcomes import main as match_main
+        return match_main(args)
+    if args.cmd == "tag-entities":
+        from discover_intel.analysis.tag_entities import main as tag_main
+        return tag_main(args)
+    if args.cmd == "toi-ga":
+        from discover_intel.ingest.toi_ga import main as toi_main
+        return toi_main(args)
     print(f"{args.cmd}: not implemented yet", file=sys.stderr)
     return 2
 
