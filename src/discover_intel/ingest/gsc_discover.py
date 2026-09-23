@@ -90,9 +90,9 @@ def handle_http_error(exc) -> int:
         sys.stderr.write(
             "gsc: 403 Forbidden — the service account cannot read the GSC property.\n"
             "  Remediation:\n"
-            "    1. Search Console → Settings → Users and permissions → Add user\n"
+            "    1. Search Console -> Settings -> Users and permissions -> Add user\n"
             "       claude-ga-mcp@ga4-mcp-504403.iam.gserviceaccount.com (Restricted or Full).\n"
-            "    2. Google Cloud Console → APIs & Services → Library →\n"
+            "    2. Google Cloud Console -> APIs & Services -> Library ->\n"
             "       enable 'Google Search Console API' in project ga4-mcp-504403.\n"
         )
         return 2

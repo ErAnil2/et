@@ -144,7 +144,7 @@ def import_file(
         "source_file": file_path.name,
     }
     log.info(
-        "import-discover: %d obs new, %d seen, %s → observed_at=%s",
+        "import-discover: %d obs new, %d seen, %s -> observed_at=%s",
         result["new"], result["seen"], result["source_file"], result["observed_at"],
     )
     return result
@@ -193,7 +193,7 @@ def main(args) -> int:
         if args.file:
             r = import_file(conn, Path(args.file), config_dir=cfg)
             print(
-                f"import-discover: {r['source_file']} → observed_at={r['observed_at']}, "
+                f"import-discover: {r['source_file']} -> observed_at={r['observed_at']}, "
                 f"{r['new']} new, {r['seen']-r['new']} dup"
             )
             return 0
