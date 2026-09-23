@@ -72,13 +72,26 @@ def _build_parser() -> argparse.ArgumentParser:
     p_vc.add_argument("--backups-dir", default="data/backups", dest="backups_dir")
     p_vc.add_argument("--force", action="store_true")
 
-    # Stubs for the rest — implemented in later tasks. Present here so --help lists them.
-    wired = {"init-db", "seed-sources", "feeds", "import-discover",
-             "import-snapshot", "gsc", "backup", "vacuum"}
-    for name in [x for x in SUBCOMMANDS if x not in wired]:
-        sub.add_parser(name, help=f"(stub) {name} — implemented later")
+    p_stats = sub.add_parser("db-stats", help="print row counts per table")
+    p_stats.add_argument("--db", required=True)
 
     return p
+
+
+def cmd_db_stats(args: argparse.Namespace) -> int:
+    conn = db.connect(args.db)
+    tables = [
+        "sources", "items", "feed_polls", "discover_articles",
+        "discover_snapshots", "gsc_discover",
+    ]
+    counts = {}
+    for t in tables:
+        (n,) = conn.execute(f"SELECT count(*) FROM {t}").fetchone()  # noqa: S608 — hard-coded table names
+        counts[t] = n
+    conn.close()
+    line = " ".join(f"{t}={counts[t]}" for t in tables)
+    print(f"db-stats: {line}")
+    return 0
 
 
 def cmd_seed_sources(args: argparse.Namespace) -> int:
@@ -125,6 +138,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.cmd == "vacuum":
         from discover_intel.ops.backup import vacuum_main
         return vacuum_main(args)
+    if args.cmd == "db-stats":
+        return cmd_db_stats(args)
     print(f"{args.cmd}: not implemented yet", file=sys.stderr)
     return 2
 
