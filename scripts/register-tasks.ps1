@@ -1,0 +1,66 @@
+$ErrorActionPreference = "Stop"
+$root = Split-Path -Parent $PSScriptRoot
+
+function Register-DI {
+  param(
+    [Parameter(Mandatory=$true)][string]$Name,
+    [Parameter(Mandatory=$true)][string]$Script,
+    [Parameter(Mandatory=$true)]$Triggers
+  )
+
+  # Idempotent: remove any prior version first.
+  $existing = Get-ScheduledTask -TaskName $Name -ErrorAction SilentlyContinue
+  if ($existing) { Unregister-ScheduledTask -TaskName $Name -Confirm:$false }
+
+  $action    = New-ScheduledTaskAction `
+    -Execute "powershell.exe" `
+    -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$root\scripts\$Script`"" `
+    -WorkingDirectory $root
+
+  $principal = New-ScheduledTaskPrincipal `
+    -UserId "$env:USERDOMAIN\$env:USERNAME" `
+    -LogonType S4U -RunLevel Limited
+
+  $settings  = New-ScheduledTaskSettingsSet `
+    -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
+    -StartWhenAvailable `
+    -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 5) `
+    -Compatibility "Win8"
+
+  Register-ScheduledTask -TaskName $Name -Action $action -Trigger $Triggers `
+    -Principal $principal -Settings $settings | Out-Null
+  Write-Host "registered: $Name"
+}
+
+$now = Get-Date
+
+# every 30 min (from now)
+$t_feeds = New-ScheduledTaskTrigger -Once -At $now `
+  -RepetitionInterval (New-TimeSpan -Minutes 30) -RepetitionDuration ([TimeSpan]::MaxValue)
+
+# every 60 min
+$t_yt = New-ScheduledTaskTrigger -Once -At $now `
+  -RepetitionInterval (New-TimeSpan -Minutes 60) -RepetitionDuration ([TimeSpan]::MaxValue)
+
+# every 15 min
+$t_imp = New-ScheduledTaskTrigger -Once -At $now `
+  -RepetitionInterval (New-TimeSpan -Minutes 15) -RepetitionDuration ([TimeSpan]::MaxValue)
+
+# daily times
+$t_gsc     = New-ScheduledTaskTrigger -Daily -At ([DateTime]"04:00")
+$t_backup  = New-ScheduledTaskTrigger -Daily -At ([DateTime]"03:00")
+$t_dbstats = New-ScheduledTaskTrigger -Daily -At ([DateTime]"06:00")
+# Sunday 03:30
+$t_vac = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At ([DateTime]"03:30")
+
+Register-DI -Name "DiscoverIntel_Feeds"          -Script "run-feeds.ps1"           -Triggers $t_feeds
+Register-DI -Name "DiscoverIntel_YouTube"        -Script "run-youtube.ps1"         -Triggers $t_yt
+Register-DI -Name "DiscoverIntel_ImportDiscover" -Script "run-import-discover.ps1" -Triggers $t_imp
+Register-DI -Name "DiscoverIntel_GSC"            -Script "run-gsc.ps1"             -Triggers $t_gsc
+Register-DI -Name "DiscoverIntel_Backup"         -Script "run-backup.ps1"          -Triggers $t_backup
+Register-DI -Name "DiscoverIntel_Vacuum"         -Script "run-vacuum.ps1"          -Triggers $t_vac
+Register-DI -Name "DiscoverIntel_DBStats"        -Script "run-dbstats.ps1"         -Triggers $t_dbstats
+
+Write-Host ""
+Write-Host "Task Scheduler summary:"
+Get-ScheduledTask -TaskName "DiscoverIntel_*" | Format-Table TaskName, State
