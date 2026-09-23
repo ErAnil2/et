@@ -23,3 +23,16 @@ FIXTURES = Path(__file__).parent / "fixtures"
 @pytest.fixture()
 def fixtures_dir() -> Path:
     return FIXTURES
+
+
+@pytest.fixture(scope="session")
+def spacy_nlp():
+    """Load en_core_web_sm for tests (smaller/faster than the runtime _md).
+    If not installed, download once via spacy.cli.download."""
+    import spacy
+    try:
+        return spacy.load("en_core_web_sm")
+    except OSError:
+        from spacy.cli.download import download
+        download("en_core_web_sm")
+        return spacy.load("en_core_web_sm")
