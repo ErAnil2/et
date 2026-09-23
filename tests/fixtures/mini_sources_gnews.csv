@@ -1,0 +1,2 @@
+source_id,kind,market,name,url,host,tier,category,enabled,notes
+gnews:query:mortgage rates,gnews_query,US,mortgage rates,https://news.google.com/rss/search?q=%22mortgage+rates%22+when%3A1d&hl=en-US&gl=US&ceid=US:en,,,,1,beat
