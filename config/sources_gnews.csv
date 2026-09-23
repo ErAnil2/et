@@ -1,0 +1,51 @@
+source_id,kind,market,name,url,host,tier,category,enabled,notes
+gnews:site:yahoo.com,gnews_site,US,gnews site:yahoo.com,https://news.google.com/rss/search?q=site%3Ayahoo.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,yahoo.com,,,1,
+gnews:site:cbsnews.com,gnews_site,US,gnews site:cbsnews.com,https://news.google.com/rss/search?q=site%3Acbsnews.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,cbsnews.com,,,1,
+gnews:site:people.com,gnews_site,US,gnews site:people.com,https://news.google.com/rss/search?q=site%3Apeople.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,people.com,,,1,
+gnews:site:bbc.com,gnews_site,US,gnews site:bbc.com,https://news.google.com/rss/search?q=site%3Abbc.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,bbc.com,,,1,
+gnews:site:cnn.com,gnews_site,US,gnews site:cnn.com,https://news.google.com/rss/search?q=site%3Acnn.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,cnn.com,,,1,
+gnews:site:nytimes.com,gnews_site,US,gnews site:nytimes.com,https://news.google.com/rss/search?q=site%3Anytimes.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,nytimes.com,,,1,
+gnews:site:nbcnews.com,gnews_site,US,gnews site:nbcnews.com,https://news.google.com/rss/search?q=site%3Anbcnews.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,nbcnews.com,,,1,
+gnews:site:thehill.com,gnews_site,US,gnews site:thehill.com,https://news.google.com/rss/search?q=site%3Athehill.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,thehill.com,,,1,
+gnews:site:spacedaily.com,gnews_site,US,gnews site:spacedaily.com,https://news.google.com/rss/search?q=site%3Aspacedaily.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,spacedaily.com,,,1,
+gnews:site:southernliving.com,gnews_site,US,gnews site:southernliving.com,https://news.google.com/rss/search?q=site%3Asouthernliving.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,southernliving.com,,,1,
+gnews:site:foxnews.com,gnews_site,US,gnews site:foxnews.com,https://news.google.com/rss/search?q=site%3Afoxnews.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,foxnews.com,,,1,
+gnews:site:theguardian.com,gnews_site,US,gnews site:theguardian.com,https://news.google.com/rss/search?q=site%3Atheguardian.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,theguardian.com,,,1,
+gnews:site:apnews.com,gnews_site,US,gnews site:apnews.com,https://news.google.com/rss/search?q=site%3Aapnews.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,apnews.com,,,1,
+gnews:site:parade.com,gnews_site,US,gnews site:parade.com,https://news.google.com/rss/search?q=site%3Aparade.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,parade.com,,,1,
+gnews:site:fortune.com,gnews_site,US,gnews site:fortune.com,https://news.google.com/rss/search?q=site%3Afortune.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,fortune.com,,,1,
+gnews:site:aol.com,gnews_site,US,gnews site:aol.com,https://news.google.com/rss/search?q=site%3Aaol.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,aol.com,,,1,
+gnews:site:cnbc.com,gnews_site,US,gnews site:cnbc.com,https://news.google.com/rss/search?q=site%3Acnbc.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,cnbc.com,,,1,
+gnews:site:npr.org,gnews_site,US,gnews site:npr.org,https://news.google.com/rss/search?q=site%3Anpr.org+when%3A1d&hl=en-US&gl=US&ceid=US:en,npr.org,,,1,
+gnews:site:the-sun.com,gnews_site,US,gnews site:the-sun.com,https://news.google.com/rss/search?q=site%3Athe-sun.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,the-sun.com,,,1,
+gnews:site:usatoday.com,gnews_site,US,gnews site:usatoday.com,https://news.google.com/rss/search?q=site%3Ausatoday.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,usatoday.com,,,1,
+gnews:site:thestreet.com,gnews_site,US,gnews site:thestreet.com,https://news.google.com/rss/search?q=site%3Athestreet.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,thestreet.com,,,1,
+gnews:site:marijuanamoment.net,gnews_site,US,gnews site:marijuanamoment.net,https://news.google.com/rss/search?q=site%3Amarijuanamoment.net+when%3A1d&hl=en-US&gl=US&ceid=US:en,marijuanamoment.net,,,1,
+gnews:site:newsweek.com,gnews_site,US,gnews site:newsweek.com,https://news.google.com/rss/search?q=site%3Anewsweek.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,newsweek.com,,,1,
+gnews:site:newatlas.com,gnews_site,US,gnews site:newatlas.com,https://news.google.com/rss/search?q=site%3Anewatlas.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,newatlas.com,,,1,
+gnews:site:reuters.com,gnews_site,US,gnews site:reuters.com,https://news.google.com/rss/search?q=site%3Areuters.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,reuters.com,,,1,
+gnews:site:nypost.com,gnews_site,US,gnews site:nypost.com,https://news.google.com/rss/search?q=site%3Anypost.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,nypost.com,,,1,
+gnews:site:abc7.com,gnews_site,US,gnews site:abc7.com,https://news.google.com/rss/search?q=site%3Aabc7.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,abc7.com,,,1,
+gnews:site:space.com,gnews_site,US,gnews site:space.com,https://news.google.com/rss/search?q=site%3Aspace.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,space.com,,,1,
+gnews:site:politico.com,gnews_site,US,gnews site:politico.com,https://news.google.com/rss/search?q=site%3Apolitico.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,politico.com,,,1,
+gnews:site:sciencedaily.com,gnews_site,US,gnews site:sciencedaily.com,https://news.google.com/rss/search?q=site%3Asciencedaily.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,sciencedaily.com,,,1,
+gnews:site:brobible.com,gnews_site,US,gnews site:brobible.com,https://news.google.com/rss/search?q=site%3Abrobible.com+when%3A1d&hl=en-US&gl=US&ceid=US:en,brobible.com,,,1,
+gnews:query:federal-reserve,gnews_query,US,Federal Reserve,https://news.google.com/rss/search?q=%22Federal+Reserve%22+when%3A1d&hl=en-US&gl=US&ceid=US:en,,,,1,beat
+gnews:query:mortgage-rates,gnews_query,US,mortgage rates,https://news.google.com/rss/search?q=%22mortgage+rates%22+when%3A1d&hl=en-US&gl=US&ceid=US:en,,,,1,beat
+gnews:query:housing-market,gnews_query,US,housing market,https://news.google.com/rss/search?q=%22housing+market%22+when%3A1d&hl=en-US&gl=US&ceid=US:en,,,,1,beat
+gnews:query:s&p-500,gnews_query,US,S&P 500,https://news.google.com/rss/search?q=%22S%26P+500%22+when%3A1d&hl=en-US&gl=US&ceid=US:en,,,,1,beat
+gnews:query:student-loans,gnews_query,US,student loans,https://news.google.com/rss/search?q=%22student+loans%22+when%3A1d&hl=en-US&gl=US&ceid=US:en,,,,1,beat
+gnews:query:social-security,gnews_query,US,Social Security,https://news.google.com/rss/search?q=%22Social+Security%22+when%3A1d&hl=en-US&gl=US&ceid=US:en,,,,1,beat
+gnews:query:medicare,gnews_query,US,Medicare,https://news.google.com/rss/search?q=%22Medicare%22+when%3A1d&hl=en-US&gl=US&ceid=US:en,,,,1,beat
+gnews:query:irs-refund,gnews_query,US,IRS refund,https://news.google.com/rss/search?q=%22IRS+refund%22+when%3A1d&hl=en-US&gl=US&ceid=US:en,,,,1,beat
+gnews:query:layoffs,gnews_query,US,layoffs,https://news.google.com/rss/search?q=%22layoffs%22+when%3A1d&hl=en-US&gl=US&ceid=US:en,,,,1,beat
+gnews:query:ai-jobs,gnews_query,US,AI jobs,https://news.google.com/rss/search?q=%22AI+jobs%22+when%3A1d&hl=en-US&gl=US&ceid=US:en,,,,1,beat
+gnews:query:electric-vehicles,gnews_query,US,electric vehicles,https://news.google.com/rss/search?q=%22electric+vehicles%22+when%3A1d&hl=en-US&gl=US&ceid=US:en,,,,1,beat
+gnews:query:mansion,gnews_query,US,mansion,https://news.google.com/rss/search?q=%22mansion%22+when%3A1d&hl=en-US&gl=US&ceid=US:en,,,,1,beat
+gnews:query:net-worth,gnews_query,US,net worth,https://news.google.com/rss/search?q=%22net+worth%22+when%3A1d&hl=en-US&gl=US&ceid=US:en,,,,1,beat
+gnews:query:credit-card-debt,gnews_query,US,credit card debt,https://news.google.com/rss/search?q=%22credit+card+debt%22+when%3A1d&hl=en-US&gl=US&ceid=US:en,,,,1,beat
+gnews:query:cost-of-living,gnews_query,US,cost of living,https://news.google.com/rss/search?q=%22cost+of+living%22+when%3A1d&hl=en-US&gl=US&ceid=US:en,,,,1,beat
+gnews:section:top-stories,gnews_section,US,Top Stories,https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en,,,,1,section
+gnews:section:business,gnews_section,US,Business,https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-US&gl=US&ceid=US:en,,,,1,section
+gnews:section:technology,gnews_section,US,Technology,https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=en-US&gl=US&ceid=US:en,,,,1,section
+gnews:section:world,gnews_section,US,World,https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en,,,,1,section
