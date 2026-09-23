@@ -49,3 +49,28 @@ def load_format_rules(config_path: Path) -> list[tuple[str, re.Pattern[str]]]:
     data = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     return [(r["format"], re.compile(r["pattern"], re.IGNORECASE | re.VERBOSE))
             for r in data]
+
+
+def seed_taxonomy(conn, lane_patterns: dict[str, Any],
+                  format_rules: list[tuple[str, Any]],
+                  lane_labels: dict[str, str]) -> None:
+    """Idempotent upsert of taxonomy rows from lane and format configs.
+
+    All lanes seed with in_et_lane=1 — comprehensive tagging.
+    Editorial can flip individual slugs to 0 via SQL later.
+    """
+    for slug in lane_patterns.keys():
+        conn.execute(
+            "INSERT OR REPLACE INTO taxonomy "
+            "(taxonomy_id, kind, label, parent_id, in_et_lane) "
+            "VALUES (?, 'lane', ?, NULL, 1)",
+            (f"lane:{slug}", lane_labels.get(slug, slug.replace("_", " ").title())),
+        )
+    for fmt, _ in format_rules:
+        conn.execute(
+            "INSERT OR REPLACE INTO taxonomy "
+            "(taxonomy_id, kind, label, parent_id, in_et_lane) "
+            "VALUES (?, 'format', ?, NULL, 1)",
+            (f"format:{fmt}", fmt.title()),
+        )
+    conn.commit()
