@@ -60,3 +60,56 @@ def match_canonical(conn: sqlite3.Connection, since_hours: int) -> list[tuple[st
         if _stripped_url_equals(canonical, obs_url):
             pairs.append((item_id, obs_id))
     return pairs
+
+
+def match_title_exact(conn: sqlite3.Connection, since_hours: int) -> list[tuple[str, str]]:
+    """Stage 3: same host + normalised title (title_hash) exact match."""
+    import hashlib
+    cutoff = _since_iso(since_hours)
+    rows = conn.execute(
+        "SELECT o.obs_id, o.host, o.title FROM discover_articles o "
+        "WHERE o.observed_at >= ?",
+        (cutoff,),
+    ).fetchall()
+    pairs: list[tuple[str, str]] = []
+    for obs_id, host, obs_title in rows:
+        norm = _normalise_title(obs_title)
+        thash = hashlib.sha1(norm.encode("utf-8")).hexdigest()
+        matches = conn.execute(
+            "SELECT item_id FROM items "
+            "WHERE host = ? AND (title_hash = ? OR lower(title) = ?)",
+            (host, thash, norm),
+        ).fetchall()
+        for (item_id,) in matches:
+            pairs.append((item_id, obs_id))
+    return pairs
+
+
+def match_title_fuzzy(conn: sqlite3.Connection, since_hours: int,
+                      threshold: float = 0.85) -> list[tuple[str, str]]:
+    """Stage 4: same host + rapidfuzz token_set_ratio >= threshold, ±48h window."""
+    from rapidfuzz import fuzz
+    cutoff = _since_iso(since_hours)
+    obs_rows = conn.execute(
+        "SELECT obs_id, host, title, observed_at FROM discover_articles "
+        "WHERE observed_at >= ?",
+        (cutoff,),
+    ).fetchall()
+
+    pairs: list[tuple[str, str]] = []
+    for obs_id, host, obs_title, observed_at in obs_rows:
+        obs_dt = dt.datetime.strptime(observed_at, "%Y-%m-%dT%H:%M:%SZ").replace(
+            tzinfo=dt.timezone.utc)
+        window_start = (obs_dt - dt.timedelta(hours=48)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        window_end = (obs_dt + dt.timedelta(hours=48)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        candidates = conn.execute(
+            "SELECT item_id, title FROM items "
+            "WHERE host = ? AND first_seen_at BETWEEN ? AND ?",
+            (host, window_start, window_end),
+        ).fetchall()
+        for item_id, item_title in candidates:
+            ratio = fuzz.token_set_ratio(item_title, obs_title) / 100.0
+            if ratio >= threshold:
+                pairs.append((item_id, obs_id))
+    return pairs
