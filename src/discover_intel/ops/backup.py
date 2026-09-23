@@ -65,3 +65,26 @@ def main(args) -> int:
         f"({args.keep_dailies} dailies + weekly Sundays)"
     )
     return 0
+
+
+def vacuum_db(source: Path, backups_dir: Path, force: bool = False) -> None:
+    today = _today_str()
+    today_backup = backups_dir / f"warehouse-{today}.db"
+    if not force and not today_backup.exists():
+        raise RuntimeError(
+            f"vacuum: refusing without today's backup at {today_backup}. "
+            f"Run `discover_intel backup --db {source}` first, or pass --force."
+        )
+    conn = sqlite3.connect(str(source))
+    try:
+        conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        conn.execute("VACUUM")
+    finally:
+        conn.close()
+    log.info("vacuum: complete for %s", source)
+
+
+def vacuum_main(args) -> int:
+    vacuum_db(Path(args.db), Path(args.backups_dir), force=args.force)
+    print("vacuum: done")
+    return 0
