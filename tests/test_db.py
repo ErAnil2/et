@@ -42,3 +42,10 @@ def test_upsert_inserts_and_updates(tmp_path: Path):
     db.upsert(conn, "sources", row, key="source_id")
     (name,) = conn.execute("SELECT name FROM sources").fetchone()
     assert name == "example-updated"
+
+
+def test_conn_fixture_has_schema(conn):
+    tables = {r[0] for r in conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='table'"
+    )}
+    assert "items" in tables
