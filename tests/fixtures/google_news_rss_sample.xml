@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+  <title>Google News - site:example.com</title>
+  <link>https://news.google.com/rss/search</link>
+  <description>Google News</description>
+  <item>
+    <title>Example: Fed hint</title>
+    <link>https://news.google.com/rss/articles/CBMi_ExampleBase64_?oc=5</link>
+    <pubDate>Tue, 23 Sep 2026 12:05:00 GMT</pubDate>
+    <source url="https://www.example.com">example.com</source>
+  </item>
+  <item>
+    <title>Example: Mortgage story</title>
+    <link>https://news.google.com/rss/articles/CBMi_AnotherId_?oc=5</link>
+    <pubDate>Tue, 23 Sep 2026 12:07:00 GMT</pubDate>
+    <source url="https://www.example.com">example.com</source>
+  </item>
+</channel></rss>
