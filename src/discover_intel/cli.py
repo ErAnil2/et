@@ -46,8 +46,17 @@ def _build_parser() -> argparse.ArgumentParser:
     p_imp.add_argument("--config-dir", default="config", dest="config_dir")
     p_imp.add_argument("--dry-run", action="store_true")
 
+    p_snap = sub.add_parser("import-snapshot", help="import D2TR-style snapshot paste")
+    p_snap.add_argument("--db", required=True)
+    p_snap.add_argument("--file", required=True)
+    p_snap.add_argument("--taken-at", required=True, dest="taken_at",
+                        help="ISO UTC timestamp, e.g. 2026-09-23T15:00:00Z")
+    p_snap.add_argument("--market", default="US")
+    p_snap.add_argument("--source-kind", default="channel",
+                        choices=["channel", "host"], dest="source_kind")
+
     # Stubs for the rest — implemented in later tasks. Present here so --help lists them.
-    wired = {"init-db", "seed-sources", "feeds", "import-discover"}
+    wired = {"init-db", "seed-sources", "feeds", "import-discover", "import-snapshot"}
     for name in [x for x in SUBCOMMANDS if x not in wired]:
         sub.add_parser(name, help=f"(stub) {name} — implemented later")
 
@@ -86,6 +95,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.cmd == "import-discover":
         from discover_intel.ingest.import_discover_file import main as imp_main
         return imp_main(args)
+    if args.cmd == "import-snapshot":
+        from discover_intel.ingest.import_snapshot import main as snap_main
+        return snap_main(args)
     print(f"{args.cmd}: not implemented yet", file=sys.stderr)
     return 2
 
