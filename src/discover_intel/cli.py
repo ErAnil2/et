@@ -35,8 +35,19 @@ def _build_parser() -> argparse.ArgumentParser:
     p_feeds.add_argument("--limit", type=int, default=None)
     p_feeds.add_argument("--dry-run", action="store_true")
 
+    p_imp = sub.add_parser("import-discover",
+                           help="import DiscoverTrends CSV / Marfeel XLSX exports")
+    p_imp.add_argument("--db", required=True)
+    p_imp.add_argument("--file", default=None, help="one-off file path")
+    p_imp.add_argument("--watch", action="store_true",
+                       help="scan the imports directory once")
+    p_imp.add_argument("--imports-dir", default="data/imports/discover",
+                       dest="imports_dir")
+    p_imp.add_argument("--config-dir", default="config", dest="config_dir")
+    p_imp.add_argument("--dry-run", action="store_true")
+
     # Stubs for the rest — implemented in later tasks. Present here so --help lists them.
-    wired = {"init-db", "seed-sources", "feeds"}
+    wired = {"init-db", "seed-sources", "feeds", "import-discover"}
     for name in [x for x in SUBCOMMANDS if x not in wired]:
         sub.add_parser(name, help=f"(stub) {name} — implemented later")
 
@@ -72,6 +83,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.cmd == "feeds":
         from discover_intel.ingest.feeds import main as feeds_main
         return feeds_main(args)
+    if args.cmd == "import-discover":
+        from discover_intel.ingest.import_discover_file import main as imp_main
+        return imp_main(args)
     print(f"{args.cmd}: not implemented yet", file=sys.stderr)
     return 2
 

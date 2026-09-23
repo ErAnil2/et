@@ -6,6 +6,7 @@ import hashlib
 import json
 import logging
 import re
+import shutil
 import sqlite3
 from pathlib import Path
 
@@ -147,3 +148,59 @@ def import_file(
         result["new"], result["seen"], result["source_file"], result["observed_at"],
     )
     return result
+
+
+def _archive_dest(imports_dir: Path, kind: str, file_path: Path) -> Path:
+    now = utc_now()
+    dest_dir = imports_dir / kind / f"{now.year:04d}-{now.month:02d}"
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    stamp = now.strftime("%Y%m%dT%H%M%SZ")
+    return dest_dir / f"{file_path.stem}.{stamp}{file_path.suffix}"
+
+
+def watch_directory(
+    conn: sqlite3.Connection,
+    imports_dir: Path,
+    config_dir: Path,
+) -> dict:
+    processed = failed = new = 0
+    for f in sorted(imports_dir.glob("*.csv")):
+        try:
+            r = import_file(conn, f, config_dir=config_dir)
+            new += r["new"]
+            dest = _archive_dest(imports_dir, "processed", f)
+            shutil.move(str(f), str(dest))
+            processed += 1
+        except Exception:  # noqa: BLE001 — per-file safety
+            log.exception("import-discover: failed on %s", f.name)
+            dest = _archive_dest(imports_dir, "failed", f)
+            shutil.move(str(f), str(dest))
+            failed += 1
+    print(
+        f"import-discover: {processed} file(s) processed, {failed} failed, "
+        f"{new} new observations"
+    )
+    return {"files_processed": processed, "files_failed": failed,
+            "new_observations": new}
+
+
+def main(args) -> int:
+    conn = sqlite3.connect(args.db)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    cfg = Path(args.config_dir)
+    try:
+        if args.file:
+            r = import_file(conn, Path(args.file), config_dir=cfg)
+            print(
+                f"import-discover: {r['source_file']} → observed_at={r['observed_at']}, "
+                f"{r['new']} new, {r['seen']-r['new']} dup"
+            )
+            return 0
+        if args.watch:
+            watch_directory(conn, Path(args.imports_dir), config_dir=cfg)
+            return 0
+        print("import-discover: pass --file X or --watch", flush=True)
+        return 2
+    finally:
+        conn.close()
