@@ -55,8 +55,15 @@ def _build_parser() -> argparse.ArgumentParser:
     p_snap.add_argument("--source-kind", default="channel",
                         choices=["channel", "host"], dest="source_kind")
 
+    p_gsc = sub.add_parser("gsc", help="nightly Google Search Console pull (Discover)")
+    p_gsc.add_argument("--db", required=True)
+    p_gsc.add_argument("--start", default=None)
+    p_gsc.add_argument("--end", default=None)
+    p_gsc.add_argument("--dry-run", action="store_true")
+
     # Stubs for the rest — implemented in later tasks. Present here so --help lists them.
-    wired = {"init-db", "seed-sources", "feeds", "import-discover", "import-snapshot"}
+    wired = {"init-db", "seed-sources", "feeds", "import-discover",
+             "import-snapshot", "gsc"}
     for name in [x for x in SUBCOMMANDS if x not in wired]:
         sub.add_parser(name, help=f"(stub) {name} — implemented later")
 
@@ -98,6 +105,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.cmd == "import-snapshot":
         from discover_intel.ingest.import_snapshot import main as snap_main
         return snap_main(args)
+    if args.cmd == "gsc":
+        from discover_intel.ingest.gsc_discover import main as gsc_main
+        return gsc_main(args)
     print(f"{args.cmd}: not implemented yet", file=sys.stderr)
     return 2
 
