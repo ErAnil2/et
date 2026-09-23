@@ -1,0 +1,175 @@
+# 23 comprehensive US-Discover lanes derived from 820 real DiscoverTrends
+# observations (2026-09-23 exports). Patterns use Python-regex verbose mode
+# (re.VERBOSE + re.IGNORECASE — whitespace/newlines inside are ignored,
+# use \s or explicit boundaries where needed). All lanes seed with
+# in_et_lane=1; editorial can flip individual slugs to 0 via SQL later.
+
+real_estate_wealth:
+  label: "Real Estate & Wealth"
+  pattern: |
+    \b(mansion|estate|ranch|acres?|vineyard|net\ worth|
+    luxury|villa|penthouse|graceland|napa|sonoma|
+    hollywood\ retreat|celebrity\ home|
+    bought[^.]{0,40}(million|billion|\$)|
+    listed\ for[^.]{0,30}(million|billion|\$))\b
+
+personal_finance_benefits:
+  label: "Personal Finance & Benefits"
+  pattern: |
+    \b(social\ security|medicare|medicaid|irs|tax\ refund|
+    cola|401[- ]?k|retirement|pension|ssi|stimulus|
+    snap\ benefits|1040|earnings\ limit|4[,.]?427|
+    disability\ compensation|va\ benefits)\b
+
+retail_business_pulse:
+  label: "Retail & Business"
+  pattern: |
+    \b(closing\ (all|down)|bankruptcy|chapter\ 11|
+    store\ closing|franchisee|kroger|costco|aldi|
+    jcpenney|walmart|wendy'?s|amazon\ prime|
+    doj\ (letters?|probe|investigation))\b
+
+politics_policy:
+  label: "Politics & Policy"
+  pattern: |
+    \b(bill\ (proposes|passes|introduc)|congress|senate|
+    house\ of\ representatives|white\ house|trump|biden|
+    regulation|permanent\ daylight\ saving|dst|
+    32[- ]?hour\ work\ week|executive\ order)\b
+
+crime_courts:
+  label: "Crime & Courts"
+  pattern: |
+    \b(arrested|charged|jury|verdict|prosecut|sentenced|
+    prison|guilty|convicted|federal\ charges|drug\ debt|
+    stolen|fraud|scam|trafficking|indict|felony)\b
+
+food_grocery_prices:
+  label: "Food & Grocery Prices"
+  pattern: |
+    \b(grocery|beef|beverage|price|starbucks|mcdonald'?s|
+    coffee|whole\ foods|convenience\ store|food\ recall|
+    salmonella|listeria|contaminat)\b
+
+weather_climate:
+  label: "Weather & Climate"
+  pattern: |
+    \b(hurricane|tornado|flood|storm|snow|winter|
+    el\ ni[nñ]o|noaa|forecast|coldest|warmest|
+    drought|wildfire|blizzard|heat\ wave)\b
+
+celebrity_entertainment:
+  label: "Celebrity & Entertainment"
+  pattern: |
+    \b(actor|singer|actress|red\ carpet|hollywood|
+    movie\ star|rock\ star|sexiest\ man|
+    grammy|oscar|emmy|premiere|hospice\ (performance|singer))\b
+
+obituary_memorial:
+  label: "Obituary & Memorial"
+  pattern: |
+    \b(dead\ at\ \d+|died\ at\ \d+|obituary|passes\ away|
+    passed\ away|life\ in\ photos|memorial\ service|
+    remembering)\b
+
+human_interest:
+  label: "Human Interest"
+  pattern: |
+    \b(rescue|saved|hero|kayaker|nonprofit|donate|pledge|
+    philanthropy|homeless|helps?|feel[- ]?good|
+    inspiring|touching\ story)\b
+
+sports_athletics:
+  label: "Sports & Athletics"
+  pattern: |
+    \b(nfl|nba|mlb|nhl|ncaa|super\ bowl|world\ series|
+    playoffs?|coach|quarterback|record[- ]?breaking|
+    bench\ press|touchdown|goal|match)\b
+
+religion_faith:
+  label: "Religion & Faith"
+  pattern: |
+    \b(church|pastor|christian|jewish|muslim|hindu|
+    catholic|evangelical|arapaho|indigenous|
+    tribe|ceremony|sacred)\b
+
+tech_ai:
+  label: "Tech & AI"
+  pattern: |
+    \b(ai\b|openai|chatgpt|anthropic|nvidia|gpu|chip|
+    microsoft|google|apple|meta|amazon\ web|robot|
+    drone|semiconductor|cloud\ (earnings|revenue)|
+    layoffs\ tech)\b
+
+science_space:
+  label: "Science & Space"
+  pattern: |
+    \b(nasa|spacex|telescope|astronaut|black\ hole|
+    galaxy|mars|moon|scientists\ discover|
+    roman\ telescope|space\ photo|observatory)\b
+
+health_medicine:
+  label: "Health & Medicine"
+  pattern: |
+    \b(glp[- ]?1|drug\ approval|fda|hospital|
+    disease|virus|vaccine|clinical\ trial|
+    eli\ lilly|pfizer|moderna|blood\ pressure|
+    cancer|diabetes)\b
+
+auto_transport:
+  label: "Auto & Transport"
+  pattern: |
+    \b(tesla|ford|toyota|ev\b|electric\ vehicle|
+    truck|suv|dealership|dashcam|
+    tram|supertram|transit|subway)\b
+
+animals_wildlife:
+  label: "Animals & Wildlife"
+  pattern: |
+    \b(python|snake|dog|cat|wildlife|salmon|
+    tiger|cat\ species|coral|reef|robot\ rabbits|
+    burmese\ python|ball\ python|extinct)\b
+
+trivia_history_novelty:
+  label: "Trivia & History (novelty)"
+  pattern: |
+    (^in\ \d{4}\b|\d+\ (years?|decades?|centur\w+)\ later|
+    the\ greatest|decade\ later|century\ farm|
+    history\s+(most|greatest)|\bvintage\b|\batari\b|
+    charlie\ brown|peanuts\ ended)
+
+oddity_novelty:
+  label: "Oddities & Novelty"
+  pattern: |
+    \b(discovered|first\ time|weirdest|strangest|
+    bizarre|unusual|garage[- ]?find|found\ in|
+    tiny\ house|tech\ enthusiast|maple\ syrup|
+    hanging\ toilet\ paper)\b
+
+local_us:
+  label: "Local US News"
+  pattern: |
+    \b(kettering\ ohio|pennsylvania|california|
+    florida|texas|new\ york|chicago|state\ by\ state|
+    ohio|idaho|maine|washington\ state|missing\ since)\b
+
+finance_markets:
+  label: "Finance & Markets"
+  pattern: |
+    \b(fed\b|federal\ reserve|interest\ rates?|
+    mortgage\ rates?|refinance|inflation|s&p|nasdaq|
+    dow\ jones|treasury|yield|earnings\ report)\b
+
+labor_workforce:
+  label: "Labor & Workforce"
+  pattern: |
+    \b(layoffs|unemployment|jobless|hiring|
+    stihl|chainsaw\ maker|work\ week|
+    longer\ hours|union|strike|wages)\b
+
+immigration_border:
+  label: "Immigration & Border"
+  pattern: |
+    \b(immigration|deport|visa|border|asylum|
+    migrant|refugee|ice\ agents?|dreamer|
+    citizenship)\b
