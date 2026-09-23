@@ -113,3 +113,105 @@ def match_title_fuzzy(conn: sqlite3.Connection, since_hours: int,
             if ratio >= threshold:
                 pairs.append((item_id, obs_id))
     return pairs
+
+
+def orchestrate(conn: sqlite3.Connection, since_hours: int = 72,
+                dry_run: bool = False) -> dict[str, int]:
+    """Run all four cascade stages, INSERT OR IGNORE into item_outcomes."""
+    import time as _time
+    t0 = _time.monotonic()
+    now_iso = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    stages: list[tuple[str, list[tuple[str, str]], float]] = [
+        ("url",          match_url(conn, since_hours),          1.0),
+        ("canonical",    match_canonical(conn, since_hours),    1.0),
+        ("title_exact",  match_title_exact(conn, since_hours),  1.0),
+    ]
+    stats = {"matched": 0, "url": 0, "canonical": 0, "title_exact": 0,
+             "title_fuzzy": 0, "obs_new": 0, "unmatched": 0}
+
+    for name, pairs, score in stages:
+        for item_id, obs_id in pairs:
+            if dry_run:
+                stats[name] += 1
+                stats["matched"] += 1
+                continue
+            cur = conn.execute(
+                "INSERT OR IGNORE INTO item_outcomes "
+                "(item_id, obs_id, match_type, match_score, matched_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (item_id, obs_id, name, score, now_iso),
+            )
+            if cur.rowcount == 1:
+                stats[name] += 1
+                stats["matched"] += 1
+
+    from rapidfuzz import fuzz
+    fuzzy_pairs = match_title_fuzzy(conn, since_hours)
+    for item_id, obs_id in fuzzy_pairs:
+        row = conn.execute(
+            "SELECT i.title, o.title FROM items i, discover_articles o "
+            "WHERE i.item_id = ? AND o.obs_id = ?",
+            (item_id, obs_id),
+        ).fetchone()
+        if row is None:
+            continue
+        score = fuzz.token_set_ratio(row[0], row[1]) / 100.0
+        if dry_run:
+            stats["title_fuzzy"] += 1
+            stats["matched"] += 1
+            continue
+        cur = conn.execute(
+            "INSERT OR IGNORE INTO item_outcomes "
+            "(item_id, obs_id, match_type, match_score, matched_at) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (item_id, obs_id, "title_fuzzy", score, now_iso),
+        )
+        if cur.rowcount == 1:
+            stats["title_fuzzy"] += 1
+            stats["matched"] += 1
+
+    if not dry_run:
+        conn.commit()
+
+    obs_known_host = conn.execute(
+        "SELECT count(DISTINCT o.obs_id) FROM discover_articles o "
+        "JOIN sources s ON s.host = o.host AND s.enabled = 1 "
+        "WHERE o.observed_at >= ?",
+        (_since_iso(since_hours),),
+    ).fetchone()[0]
+    matched_known_host = conn.execute(
+        "SELECT count(DISTINCT io.obs_id) FROM item_outcomes io "
+        "JOIN discover_articles o ON o.obs_id = io.obs_id "
+        "JOIN sources s ON s.host = o.host AND s.enabled = 1 "
+        "WHERE o.observed_at >= ?",
+        (_since_iso(since_hours),),
+    ).fetchone()[0]
+    ratio = (matched_known_host / obs_known_host * 100.0) if obs_known_host else 0.0
+    stats["obs_new"] = obs_known_host
+    stats["unmatched"] = obs_known_host - matched_known_host
+
+    elapsed = _time.monotonic() - t0
+    line = (
+        f"match-outcomes: {obs_known_host} obs new, {stats['matched']} matched "
+        f"({stats['url']} url, {stats['canonical']} canonical, "
+        f"{stats['title_exact']} title_exact, {stats['title_fuzzy']} title_fuzzy), "
+        f"{stats['unmatched']} unmatched, {elapsed:.1f}s"
+    )
+    log.info(line)
+    print(line)
+    print(f"known-host match rate: {ratio:.1f}%")
+    if ratio < 70.0 and obs_known_host > 0:
+        log.warning("match-outcomes: known-host ratio %.1f%% below 70%% threshold", ratio)
+    return stats
+
+
+def main(args) -> int:
+    """CLI entry: python -m discover_intel match-outcomes --db X --since H [--dry-run]."""
+    from discover_intel import db as db_mod
+    conn = db_mod.connect(args.db)
+    try:
+        orchestrate(conn, since_hours=args.since, dry_run=args.dry_run)
+        return 0
+    finally:
+        conn.close()
