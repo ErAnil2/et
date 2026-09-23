@@ -61,9 +61,20 @@ def _build_parser() -> argparse.ArgumentParser:
     p_gsc.add_argument("--end", default=None)
     p_gsc.add_argument("--dry-run", action="store_true")
 
+    p_bk = sub.add_parser("backup", help="online backup of warehouse.db")
+    p_bk.add_argument("--db", required=True)
+    p_bk.add_argument("--dest-dir", default="data/backups", dest="dest_dir")
+    p_bk.add_argument("--force", action="store_true")
+    p_bk.add_argument("--keep-dailies", type=int, default=14, dest="keep_dailies")
+
+    p_vc = sub.add_parser("vacuum", help="checkpoint WAL and VACUUM")
+    p_vc.add_argument("--db", required=True)
+    p_vc.add_argument("--backups-dir", default="data/backups", dest="backups_dir")
+    p_vc.add_argument("--force", action="store_true")
+
     # Stubs for the rest — implemented in later tasks. Present here so --help lists them.
     wired = {"init-db", "seed-sources", "feeds", "import-discover",
-             "import-snapshot", "gsc"}
+             "import-snapshot", "gsc", "backup", "vacuum"}
     for name in [x for x in SUBCOMMANDS if x not in wired]:
         sub.add_parser(name, help=f"(stub) {name} — implemented later")
 
@@ -108,6 +119,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.cmd == "gsc":
         from discover_intel.ingest.gsc_discover import main as gsc_main
         return gsc_main(args)
+    if args.cmd == "backup":
+        from discover_intel.ops.backup import main as bk_main
+        return bk_main(args)
+    if args.cmd == "vacuum":
+        from discover_intel.ops.backup import vacuum_main
+        return vacuum_main(args)
     print(f"{args.cmd}: not implemented yet", file=sys.stderr)
     return 2
 
