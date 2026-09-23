@@ -27,8 +27,16 @@ def _build_parser() -> argparse.ArgumentParser:
         "--config-dir", default="config", help="output directory for the CSVs",
     )
 
+    p_feeds = sub.add_parser("feeds", help="poll sources and populate items/feed_polls")
+    p_feeds.add_argument("--db", required=True)
+    p_feeds.add_argument("--kind", required=True,
+                         help="comma-separated: web,gnews_site,gnews_query,gnews_section,youtube")
+    p_feeds.add_argument("--rate-per-sec", type=float, default=5.0, dest="rate_per_sec")
+    p_feeds.add_argument("--limit", type=int, default=None)
+    p_feeds.add_argument("--dry-run", action="store_true")
+
     # Stubs for the rest — implemented in later tasks. Present here so --help lists them.
-    wired = {"init-db", "seed-sources"}
+    wired = {"init-db", "seed-sources", "feeds"}
     for name in [x for x in SUBCOMMANDS if x not in wired]:
         sub.add_parser(name, help=f"(stub) {name} — implemented later")
 
@@ -61,6 +69,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         return cmd_init_db(args)
     if args.cmd == "seed-sources":
         return cmd_seed_sources(args)
+    if args.cmd == "feeds":
+        from discover_intel.ingest.feeds import main as feeds_main
+        return feeds_main(args)
     print(f"{args.cmd}: not implemented yet", file=sys.stderr)
     return 2
 
