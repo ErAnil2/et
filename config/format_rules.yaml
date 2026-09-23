@@ -1,0 +1,64 @@
+# Ordered list — first match wins.
+# Formats: news | analysis | atmosphere | service | trivia | opinion.
+# All patterns are Python re.VERBOSE + re.IGNORECASE.
+
+- format: trivia
+  pattern: |
+    (^in\ \d{4}\b|
+     \d+\ (years?|decades?|centur\w+)\ later|
+     when\ a\ district\ in|
+     around\ \d{4}\ a|
+     the\ greatest|
+     \d+\ years?\ after|
+     way\ back\ in\ \d{4})
+  reason: >-
+    Historical retells with no news hook — the exact format Google penalised
+    in Feb-2026 core update. Sprint 3 scoring will down-weight these.
+
+- format: service
+  pattern: |
+    \b(how\ to|
+       when\ to|
+       when\ should\ you|
+       here[’']?s\ how|
+       state\ by\ state\ guide|
+       step\ by\ step|
+       \d+\ (ways|tips|things)\ (to|you)|
+       complete\ guide|
+       everything\ you\ need\ to\ know)\b
+  reason: Utility content — recipe/checklist/instructional.
+
+- format: opinion
+  pattern: |
+    (\bopinion:|
+     \bwhy\ i\b|
+     \bwhy\ we\ should\b|
+     \bthe\ case\ for\b|
+     \bthe\ case\ against\b|
+     \beditorial:|
+     \bcolumn:)
+  reason: Bylined position pieces.
+
+- format: analysis
+  pattern: |
+    (\b(why|how|what)\ (the|this|that)\ .{0,40}(matters|means|is\ happening|could|will|might)\b|
+     \banalysis:|
+     \bexplained\b|
+     \bbreakdown\ of\b)
+  reason: Explanatory / interpretive framing.
+
+- format: atmosphere
+  pattern: |
+    \b(inside|
+       on\ the\ ground|
+       the\ scene\ at|
+       behind\ the\ scenes|
+       what\ it[’']?s\ like|
+       a\ day\ in\ the\ life|
+       from\ the\ front\ lines)\b
+  reason: Immersive/color pieces, first-person or observational.
+
+- format: news
+  pattern: ".*"
+  reason: >-
+    Default catchall. If nothing above matched, treat as breaking news.
