@@ -1,0 +1,23 @@
+discovertrends:
+  header_signature: [Headline, Author, Score, URL]
+  map:
+    Headline: title
+    Author: host
+    Score: visibility
+    URL: url
+  timestamp_from: filename
+  filename_regex: 'DiscoverTrends_(\d{4}-\d{2}-\d{2})_(\d{2})(\d{2})\.csv'
+  market: US
+
+marfeel:
+  # TODO: header_signature to be confirmed once a real Marfeel export is available.
+  # Placeholder based on PRD text ("title, visibility, host, format, time").
+  header_signature: [title, host, visibility, format, time]
+  map:
+    title: title
+    host: host
+    visibility: visibility
+    format: format
+    time: time_on_feed_min
+  timestamp_from: header_row_col
+  market: US
