@@ -1,0 +1,49 @@
+[project]
+name = "discover-intel"
+version = "0.1.0"
+description = "Discover Intelligence System — Sprint 1 (ingestion)"
+requires-python = ">=3.11"
+dependencies = [
+  "httpx[http2]==0.27.2",
+  "feedparser==6.0.11",
+  "openpyxl==3.1.5",
+  "PyYAML==6.0.2",
+  "google-api-python-client==2.149.0",
+  "google-auth==2.36.0",
+  "python-dateutil==2.9.0.post0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==8.3.3",
+  "pytest-httpx==0.32.0",
+  "ruff==0.7.4",
+  "mypy==1.13.0",
+]
+
+[project.scripts]
+discover-intel = "discover_intel.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+addopts = "-ra -q"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src/discover_intel"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"

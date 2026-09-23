@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Project data
+data/
+logs/
+secrets/*
+!secrets/README.md
+*.json
+!config/*.json
+
+# Editor
+.vscode/
+.idea/
