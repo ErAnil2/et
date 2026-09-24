@@ -1,0 +1,12 @@
+you won'?t believe
+you won'?t guess
+this one (weird|simple|crazy) trick
+what happened next
+you'?ll never guess
+this (man|woman|kid|couple) (found|did|discovered)
+these (\d+) things? (will|can) shock
+number \d+ will (shock|surprise|blow)
+\.\.\.\s*$
+^[^.!?]+\?\s*$
+guess what these
+here'?s why (you|everyone)
