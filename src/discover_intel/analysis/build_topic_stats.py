@@ -4,6 +4,7 @@ from __future__ import annotations
 import datetime as dt
 import logging
 import sqlite3
+import time as _time
 
 log = logging.getLogger(__name__)
 
@@ -119,3 +120,47 @@ def compute_stats(conn: sqlite3.Connection, market: str, window_hours: int,
             "winning_format": winning_format,
         })
     return out
+
+
+def persist_stats(conn: sqlite3.Connection, rows: list[dict]) -> None:
+    for r in rows:
+        conn.execute(
+            "INSERT OR REPLACE INTO topic_stats "
+            "(hour_utc, market, entity, new_items, competitor_hosts, "
+            "gnews_query_hits, discover_obs, discover_visibility, "
+            "avg_time_on_feed_min, winning_format) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (r["hour_utc"], r["market"], r["entity"], r["new_items"],
+             r["competitor_hosts"], r["gnews_query_hits"], r["discover_obs"],
+             r["discover_visibility"], r["avg_time_on_feed_min"],
+             r["winning_format"]),
+        )
+    conn.commit()
+
+
+def orchestrate(conn: sqlite3.Connection, market: str = "US",
+                window_hours: int = 72, dry_run: bool = False) -> dict:
+    t0 = _time.monotonic()
+    rows = compute_stats(conn, market=market, window_hours=window_hours)
+    entities = {r["entity"] for r in rows}
+    if not dry_run:
+        persist_stats(conn, rows)
+    elapsed = _time.monotonic() - t0
+    line = (
+        f"build-topic-stats: {window_hours}h x {len(entities)} entities x "
+        f"{market} = {len(rows)} rows in {elapsed:.1f}s"
+    )
+    log.info(line)
+    print(line)
+    return {"rows": len(rows), "entities": len(entities), "elapsed_s": elapsed}
+
+
+def main(args) -> int:
+    from discover_intel import db as db_mod
+    conn = db_mod.connect(args.db)
+    try:
+        orchestrate(conn, market=args.market, window_hours=args.window_hours,
+                    dry_run=args.dry_run)
+        return 0
+    finally:
+        conn.close()

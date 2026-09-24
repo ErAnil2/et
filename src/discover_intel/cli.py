@@ -12,6 +12,7 @@ SUBCOMMANDS = (
     "init-db", "seed-sources", "feeds", "import-discover", "import-snapshot",
     "gsc", "backup", "vacuum", "db-stats",
     "resolve-urls", "match-outcomes", "tag-entities", "toi-ga",
+    "build-topic-stats", "tos", "drs", "digest", "dashboard",
 )
 
 
@@ -105,6 +106,13 @@ def _build_parser() -> argparse.ArgumentParser:
     p_toi.add_argument("--end", default=None, help="YYYY-MM-DD; default: yesterday UTC")
     p_toi.add_argument("--dry-run", action="store_true")
 
+    p_bts = sub.add_parser("build-topic-stats",
+                           help="compute topic_stats aggregates from tagged warehouse")
+    p_bts.add_argument("--db", required=True)
+    p_bts.add_argument("--market", default="US")
+    p_bts.add_argument("--window-hours", type=int, default=72, dest="window_hours")
+    p_bts.add_argument("--dry-run", action="store_true")
+
     return p
 
 
@@ -183,6 +191,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.cmd == "toi-ga":
         from discover_intel.ingest.toi_ga import main as toi_main
         return toi_main(args)
+    if args.cmd == "build-topic-stats":
+        from discover_intel.analysis.build_topic_stats import main as bts_main
+        return bts_main(args)
     print(f"{args.cmd}: not implemented yet", file=sys.stderr)
     return 2
 
