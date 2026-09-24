@@ -119,6 +119,18 @@ def _build_parser() -> argparse.ArgumentParser:
     p_tos.add_argument("--market", default="US")
     p_tos.add_argument("--dry-run", action="store_true")
 
+    p_drs = sub.add_parser("drs",
+                           help="Discover Readiness Score for a draft article")
+    p_drs.add_argument("--title")
+    p_drs.add_argument("--image-width", type=int, dest="image_width", default=0)
+    p_drs.add_argument("--author", default="")
+    p_drs.add_argument("--published-at", dest="published_at", default=None)
+    p_drs.add_argument("--url", default=None)
+    p_drs.add_argument("--body-file", dest="body_file", default=None)
+    p_drs.add_argument("--json", default=None,
+                       help="path to a JSON file with draft fields")
+    p_drs.add_argument("--db", default="data/warehouse.db")
+
     return p
 
 
@@ -203,6 +215,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.cmd == "tos":
         from discover_intel.scoring.tos import main as tos_main
         return tos_main(args)
+    if args.cmd == "drs":
+        from discover_intel.scoring.drs import main as drs_main
+        return drs_main(args)
     print(f"{args.cmd}: not implemented yet", file=sys.stderr)
     return 2
 
