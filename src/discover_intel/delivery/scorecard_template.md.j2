@@ -1,0 +1,39 @@
+# US Discover Scorecard - {{ iso_week }}
+
+**Window:** {{ window_start }} to {{ window_end }}
+**Computed:** {{ computed_at }}
+
+## Market precision
+
+{{ digest_topics_count }} topics were in the digest this week (TOS >= 60).
+
+{% if market_precision is not none -%}
+**{{ '%.1f' | format(market_precision) }}%** appeared in DiscoverTrends/TOI-GA within 48 hours.
+
+Baseline for a random topic is ~5-10% (varies by publisher volume);
+Sprint-1 success criterion is >=2x that baseline.
+{%- else -%}
+No digests were produced this week - precision is undefined.
+{%- endif %}
+
+## ET conversion
+
+{% if et_conversion.gsc_populated -%}
+On-digest ET articles: avg **{{ et_conversion.on_digest_avg_impressions|int }}** impressions,
+**{{ et_conversion.on_digest_avg_clicks|int }}** clicks.
+
+Off-digest ET articles: avg **{{ et_conversion.off_digest_avg_impressions|int }}** impressions,
+**{{ et_conversion.off_digest_avg_clicks|int }}** clicks.
+{%- else -%}
+**N/A - GSC not populated.** Enable the GSC job to compute ET conversion; see README.
+{%- endif %}
+
+## Coverage trends
+
+Per-lane distinct entities this week vs prior week:
+
+| Lane | This week | Prior week | Delta |
+|---|---|---|---|
+{% for row in coverage_trends -%}
+| {{ row.lane }} | {{ row.entity_count }} | {{ row.prior_entity_count }} | {{ row.delta }} |
+{% endfor %}

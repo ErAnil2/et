@@ -13,6 +13,7 @@ SUBCOMMANDS = (
     "gsc", "backup", "vacuum", "db-stats",
     "resolve-urls", "match-outcomes", "tag-entities", "toi-ga",
     "build-topic-stats", "tos", "drs", "digest", "dashboard",
+    "scorecard",
 )
 
 
@@ -143,6 +144,15 @@ def _build_parser() -> argparse.ArgumentParser:
     p_dash.add_argument("--db", required=True)
     p_dash.add_argument("--port", type=int, default=8501)
 
+    p_sc = sub.add_parser("scorecard",
+                          help="weekly scorecard: precision + ET conversion + coverage")
+    p_sc.add_argument("--db", required=True)
+    p_sc.add_argument("--week", default=None,
+                      help="ISO week YYYY-Www; default: previous week")
+    p_sc.add_argument("--market", default="US")
+    p_sc.add_argument("--out", default="data/scorecards")
+    p_sc.add_argument("--dry-run", action="store_true")
+
     return p
 
 
@@ -153,6 +163,7 @@ def cmd_db_stats(args: argparse.Namespace) -> int:
         "discover_snapshots", "gsc_discover",
         "item_outcomes", "taxonomy", "item_entities",
         "topic_stats", "topic_scores", "article_scores",
+        "scorecards",
     ]
     counts = {}
     for t in tables:
@@ -237,6 +248,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.cmd == "dashboard":
         from discover_intel.delivery.dashboard import main as dash_main
         return dash_main(args)
+    if args.cmd == "scorecard":
+        from discover_intel.analysis.scorecard import main as sc_main
+        return sc_main(args)
     print(f"{args.cmd}: not implemented yet", file=sys.stderr)
     return 2
 
