@@ -233,3 +233,40 @@ touching Python.
 
 - **`config/scoring.yaml`** — TOS weights, DRS weights, thresholds (publish, watchlist, DRS gate), headroom curve, timing decay, producible formats, YMYL lanes, suggested headline patterns.
 - **`config/clickbait_patterns.txt`** — one regex per line; DRS headline check reads at startup.
+
+---
+
+## Sprint 4 (Scorecard)
+
+Sprint 4 adds a weekly measurement scorecard: three metrics — market
+precision, ET conversion, coverage trends — materialised as Markdown
+artifacts (`data/scorecards/YYYY-Www.md`) and persisted to a new
+`scorecards` table for query.
+
+**Spec:** `docs/superpowers/specs/2026-09-24-sprint-4-scorecard-design.md`.
+
+### Sprint 4 first-time setup
+
+```powershell
+# 1. Reapply schema (idempotent — adds scorecards table + bumps user_version to 4)
+python -m discover_intel init-db --db data\warehouse.db
+
+# 2. Reinstall scheduled tasks (adds 1 more)
+.\scripts\register-tasks.ps1
+```
+
+No new deps, no new env vars.
+
+### Sprint 4 acceptance smoke commands
+
+1. `python -m discover_intel scorecard --db data\warehouse.db --week 2026-W39 --dry-run` → renders Markdown to stdout, no DB write.
+
+2. `python -m discover_intel scorecard --db data\warehouse.db --week 2026-W39` → writes `data\scorecards\2026-W39.md` + `data\scorecards\latest.md`, inserts a `scorecards` row.
+
+3. Re-run (2) — same iso_week — `INSERT OR REPLACE` overwrites, still 1 row.
+
+4. `python -m discover_intel db-stats --db data\warehouse.db` → lists `scorecards=N`.
+
+5. `.\scripts\register-tasks.ps1` → installs all 15 tasks; `Get-ScheduledTask -TaskName "DiscoverIntel_*"` shows them Ready.
+
+6. `pytest tests\ -q` — all Sprint 1 + 2 + 3 + 4 tests pass.
