@@ -112,3 +112,68 @@ Run each in order from the repo root with the venv active:
 Sprints 2–4 (URL resolver, entity/topic tagger, outcome matcher, TOS/DRS
 scoring, Slack digest, dashboard, scorecard) will build on this warehouse but
 add their own tables and modules. See the PRD for the full plan.
+
+---
+
+## Sprint 2 (Analysis)
+
+Sprint 2 layers derived analytics onto the Sprint 1 warehouse: URL resolution,
+outcome matching, entity/lane/format tagging, and TOI Discover-attributed
+traffic as a second market-truth signal.
+
+**Spec:** `docs/superpowers/specs/2026-09-24-sprint-2-analysis-design.md`.
+**Plan:** `docs/superpowers/plans/2026-09-24-sprint-2-analysis.md`.
+
+### Sprint 2 first-time setup
+
+```powershell
+# 1. Reinstall to pick up the new deps declared in pyproject.toml v0.2
+.\.venv\Scripts\Activate.ps1
+pip install -e ".[dev]"
+# Optional: LLM fallback via Claude Code SDK
+pip install -e ".[llm]"
+
+# 2. Download spaCy model (~50 MB, one-time)
+python -m spacy download en_core_web_md
+
+# 3. Persist TOI GA environment variables
+setx TOI_GA_SA_JSON "C:\Users\Anil.Kumar6\Desktop\My Inteligence System\ga4-mcp-504403-c72f94fdfd37 (2).json"
+setx TOI_GA_PROPERTY_ID "230487101"
+
+# 4. Reapply the schema (idempotent — adds v2 tables if missing)
+python -m discover_intel init-db --db data\warehouse.db
+
+# 5. Reinstall scheduled tasks (adds 4 new ones)
+.\scripts\register-tasks.ps1
+```
+
+**Prerequisites for TOI GA (off-code, one-time):**
+
+1. Enable **Google Analytics Data API** in Google Cloud project `ga4-mcp-504403`
+   (Console → APIs & Services → Library).
+2. Add `claude-ga-mcp@ga4-mcp-504403.iam.gserviceaccount.com` as **Viewer** on
+   GA4 property `230487101` (analytics.google.com → Admin → Property Access
+   Management).
+
+Until both are done, `discover_intel toi-ga` will 403 with a remediation message.
+
+### Sprint 2 acceptance smoke commands
+
+1. `python -m discover_intel resolve-urls --db data\warehouse.db --limit 500`
+   → fills `items.canonical_url` for Google News URLs. ≥90% within 3 runs.
+
+2. `python -m discover_intel match-outcomes --db data\warehouse.db --since 72`
+   → prints `known-host match rate: NN.N%`. Target ≥ 70%.
+
+3. `python -m discover_intel tag-entities --db data\warehouse.db --source both --limit 5000`
+   → populates `item_entities`.
+
+4. `python -m discover_intel toi-ga --db data\warehouse.db --dry-run`
+   → validates env vars, prints planned request.
+
+5. `python -m discover_intel db-stats --db data\warehouse.db`
+   → now shows non-zero counts for `item_outcomes` and `item_entities`.
+
+6. `.\scripts\register-tasks.ps1` → installs all 11 tasks (7 Sprint 1 + 4 Sprint 2).
+
+7. `pytest tests\ -q` → all tests pass.
