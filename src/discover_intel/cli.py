@@ -138,6 +138,11 @@ def _build_parser() -> argparse.ArgumentParser:
     p_dig.add_argument("--out", default="data/digests")
     p_dig.add_argument("--dry-run", action="store_true")
 
+    p_dash = sub.add_parser("dashboard",
+                            help="launch Streamlit dashboard (5 tabs)")
+    p_dash.add_argument("--db", required=True)
+    p_dash.add_argument("--port", type=int, default=8501)
+
     return p
 
 
@@ -228,6 +233,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.cmd == "digest":
         from discover_intel.delivery.slack_digest import main as digest_main
         return digest_main(args)
+    if args.cmd == "dashboard":
+        from discover_intel.delivery.dashboard import main as dash_main
+        return dash_main(args)
     print(f"{args.cmd}: not implemented yet", file=sys.stderr)
     return 2
 
