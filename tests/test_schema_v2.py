@@ -13,7 +13,7 @@ def test_schema_v2_includes_new_tables():
     assert {"item_outcomes", "taxonomy", "item_entities"} <= tables
 
     (uv,) = conn.execute("PRAGMA user_version").fetchone()
-    assert uv == 3
+    assert uv == 4
 
 
 def test_item_outcomes_pk_is_composite():

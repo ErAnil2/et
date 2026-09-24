@@ -13,7 +13,7 @@ def test_init_creates_v3_tables(tmp_path: Path):
     )
     conn = sqlite3.connect(str(db_path))
     (uv,) = conn.execute("PRAGMA user_version").fetchone()
-    assert uv == 3
+    assert uv == 4
     tables = {r[0] for r in conn.execute(
         "SELECT name FROM sqlite_master WHERE type='table'"
     )}

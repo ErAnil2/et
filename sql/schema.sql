@@ -1,4 +1,4 @@
-PRAGMA user_version = 3;
+PRAGMA user_version = 4;
 
 CREATE TABLE IF NOT EXISTS sources (
   source_id     TEXT PRIMARY KEY,
@@ -203,3 +203,24 @@ CREATE TABLE IF NOT EXISTS article_scores (
 );
 CREATE INDEX IF NOT EXISTS idx_article_scores_draft ON article_scores(draft_id, scored_at DESC);
 CREATE INDEX IF NOT EXISTS idx_article_scores_drs   ON article_scores(drs DESC, scored_at DESC);
+
+-- ============================================================================
+-- Sprint 4 additions (added 2026-09-24).
+-- ============================================================================
+
+-- Written by S4 analysis/scorecard.py. One row per weekly run per market.
+-- PK on (iso_week, market) so re-running overwrites (backfill-friendly).
+CREATE TABLE IF NOT EXISTS scorecards (
+  iso_week             TEXT NOT NULL,
+  market               TEXT NOT NULL,
+  computed_at          TEXT NOT NULL,
+  window_start         TEXT NOT NULL,
+  window_end           TEXT NOT NULL,
+  digest_topics_count  INTEGER NOT NULL DEFAULT 0,
+  market_precision     REAL,
+  et_conversion_json   TEXT NOT NULL,
+  coverage_trends_json TEXT NOT NULL,
+  markdown_path        TEXT NOT NULL,
+  PRIMARY KEY (iso_week, market)
+);
+CREATE INDEX IF NOT EXISTS idx_scorecards_computed ON scorecards(computed_at DESC);

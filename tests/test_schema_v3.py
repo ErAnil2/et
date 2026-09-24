@@ -12,7 +12,7 @@ def test_schema_v3_includes_new_tables():
     )}
     assert {"topic_stats", "topic_scores", "article_scores"} <= tables
     (uv,) = conn.execute("PRAGMA user_version").fetchone()
-    assert uv == 3
+    assert uv == 4
 
 
 def test_topic_scores_pk_composite():
