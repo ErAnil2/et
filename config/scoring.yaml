@@ -1,0 +1,72 @@
+# All Sprint 3 scoring knobs live here. Editing this file changes scoring behavior
+# without touching Python. Weights must sum to 1.0 per section.
+
+tos:
+  weights:
+    momentum:     0.30
+    headroom:     0.25
+    timing:       0.20
+    format_match: 0.15
+    lane_fit:     0.10
+  thresholds:
+    publish:   60.0
+    watchlist: 45.0
+  # competitor_hosts_24h -> component value (bell curve peaked at 3-6 hosts)
+  headroom_curve:
+    "0":  0.40
+    "1":  0.40
+    "2":  0.80
+    "3":  1.00
+    "4":  1.00
+    "5":  1.00
+    "6":  1.00
+    "7":  0.60
+    "8":  0.60
+    "9":  0.60
+    "10": 0.60
+    default: 0.20
+  timing:
+    freshness_decay_hours: 18.0
+  format_match:
+    producible:      [news, analysis, atmosphere, service]
+    unknown_value:   0.5
+    penalty_formats: [trivia, quote]
+    penalty_value:   0.0
+  lane_fit:
+    in_lane_value:     1.0
+    out_of_lane_value: 0.3
+  suggested_headline_patterns:
+    news:       "{entity}: {fact}"
+    analysis:   "Why {entity}'s {topic} matters for {audience}"
+    atmosphere: "Inside {entity}: {angle}"
+    service:    "How {entity} affects {your_thing}: what to do"
+    default:    "{entity}: {angle}"
+
+drs:
+  weights:
+    headline:    0.25
+    image:       0.25
+    eeat:        0.20
+    originality: 0.15
+    timeliness:  0.10
+    technical:   0.05
+  gate: 70.0
+  headline:
+    min_chars: 40
+    max_chars: 110
+    require_entity_and_fact: true
+    clickbait_patterns_file: config/clickbait_patterns.txt
+  image:
+    min_width_px: 1200
+    reject_square_aspect_ratio: true
+    check_max_image_preview_large: true
+  eeat:
+    ymyl_lanes: [personal_finance_benefits, finance_markets, health_medicine]
+    require_author_ymyl: true
+  originality:
+    fuzzy_threshold_max: 0.85
+  timeliness:
+    entity_tos_floor: 45.0
+    decay_hours_from_peak: 36.0
+  technical:
+    without_url_default: 0.5
