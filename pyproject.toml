@@ -1,7 +1,7 @@
 [project]
 name = "discover-intel"
-version = "0.2.0"
-description = "Discover Intelligence System — Sprint 2 (analysis)"
+version = "0.3.0"
+description = "Discover Intelligence System — Sprint 3 (scoring & delivery)"
 requires-python = ">=3.11"
 dependencies = [
   "httpx[http2]==0.27.2",
@@ -14,6 +14,9 @@ dependencies = [
   "spacy>=3.8,<4.0",
   "rapidfuzz==3.10.1",
   "google-analytics-data==0.18.16",
+  "streamlit>=1.40,<2.0",
+  "plotly>=5.24,<6.0",
+  "jinja2>=3.1.4,<4.0",
 ]
 
 [project.optional-dependencies]
