@@ -128,6 +128,54 @@ def market_precision_data(conn: sqlite3.Connection) -> pd.DataFrame:
     )
 
 
+def coverage_trends_data(conn: sqlite3.Connection,
+                          window_start: str,
+                          window_end: str) -> pd.DataFrame:
+    """Per-lane distinct-entity counts in [window_start, window_end] and the
+    prior equal-length window immediately before it. Returns:
+    [lane, entity_count, prior_entity_count, delta].
+    """
+    # Compute prior window as the same duration immediately before this one.
+    # Use SQLite datetime arithmetic: duration = end - start; prior_start = start - duration.
+    df = pd.read_sql_query(
+        """
+        WITH lanes AS (
+          SELECT taxonomy_id, label FROM taxonomy WHERE kind = 'lane'
+        ),
+        this_window AS (
+          SELECT e.taxonomy_id, COUNT(DISTINCT e.entity) AS entity_count
+          FROM item_entities e
+          JOIN items i ON ('item:' || i.item_id) = e.source_key
+          WHERE e.taxonomy_id LIKE 'lane:%'
+            AND i.first_seen_at >= ? AND i.first_seen_at <= ?
+          GROUP BY e.taxonomy_id
+        ),
+        prior_window AS (
+          SELECT e.taxonomy_id, COUNT(DISTINCT e.entity) AS prior_count
+          FROM item_entities e
+          JOIN items i ON ('item:' || i.item_id) = e.source_key
+          WHERE e.taxonomy_id LIKE 'lane:%'
+            AND i.first_seen_at >= datetime(?, '-' ||
+              CAST((julianday(?) - julianday(?)) * 86400 AS INTEGER) || ' seconds')
+            AND i.first_seen_at < ?
+          GROUP BY e.taxonomy_id
+        )
+        SELECT l.label AS lane,
+          COALESCE(tw.entity_count, 0) AS entity_count,
+          COALESCE(pw.prior_count, 0) AS prior_entity_count,
+          COALESCE(tw.entity_count, 0) - COALESCE(pw.prior_count, 0) AS delta
+        FROM lanes l
+        LEFT JOIN this_window tw ON tw.taxonomy_id = l.taxonomy_id
+        LEFT JOIN prior_window pw ON pw.taxonomy_id = l.taxonomy_id
+        ORDER BY entity_count DESC
+        """,
+        conn,
+        params=(window_start, window_end, window_start, window_end, window_start,
+                window_start),
+    )
+    return df
+
+
 def et_conversion_data(conn: sqlite3.Connection) -> dict:
     """ET Discover conversion — compares ET articles matched vs unmatched to digest.
 
