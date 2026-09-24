@@ -23,6 +23,9 @@ def compute_stats(conn: sqlite3.Connection, market: str, window_hours: int,
     twenty_four_ago = _iso_hours_ago(now, 24)
     seventy_two_ago = _iso_hours_ago(now, 72)
 
+    # Only real NER entities (PERSON/ORG/GPE/PRODUCT/EVENT).
+    # Lane and format tags share the same table but have entity_type IS NULL —
+    # excluding them stops "tech_ai" (a lane slug) from being treated as an entity.
     combos = conn.execute(
         """
         SELECT DISTINCT
@@ -31,6 +34,7 @@ def compute_stats(conn: sqlite3.Connection, market: str, window_hours: int,
         FROM items i
         JOIN item_entities e ON e.source_key = 'item:' || i.item_id
         WHERE i.first_seen_at >= ?
+          AND e.entity_type IS NOT NULL
         ORDER BY hour_utc DESC
         """,
         (window_start,),
@@ -43,7 +47,7 @@ def compute_stats(conn: sqlite3.Connection, market: str, window_hours: int,
             SELECT COUNT(DISTINCT i.item_id)
             FROM items i
             JOIN item_entities e ON e.source_key = 'item:' || i.item_id
-            WHERE e.entity = ?
+            WHERE e.entity = ? AND e.entity_type IS NOT NULL
               AND substr(i.first_seen_at, 1, 13) || ':00:00Z' = ?
             """,
             (entity, hour_utc),
@@ -54,7 +58,7 @@ def compute_stats(conn: sqlite3.Connection, market: str, window_hours: int,
             SELECT COUNT(DISTINCT i.host)
             FROM items i
             JOIN item_entities e ON e.source_key = 'item:' || i.item_id
-            WHERE e.entity = ? AND i.first_seen_at >= ?
+            WHERE e.entity = ? AND e.entity_type IS NOT NULL AND i.first_seen_at >= ?
             """,
             (entity, twenty_four_ago),
         ).fetchone()
@@ -81,7 +85,7 @@ def compute_stats(conn: sqlite3.Connection, market: str, window_hours: int,
             JOIN item_outcomes io ON io.obs_id = o.obs_id
             JOIN items i ON i.item_id = io.item_id
             JOIN item_entities e ON e.source_key = 'item:' || i.item_id
-            WHERE e.entity = ? AND o.observed_at >= ?
+            WHERE e.entity = ? AND e.entity_type IS NOT NULL AND o.observed_at >= ?
             """,
             (entity, twenty_four_ago),
         ).fetchone()
@@ -96,7 +100,7 @@ def compute_stats(conn: sqlite3.Connection, market: str, window_hours: int,
             JOIN item_outcomes io ON io.obs_id = o.obs_id
             JOIN items i ON i.item_id = io.item_id
             JOIN item_entities e ON e.source_key = 'item:' || i.item_id
-            WHERE e.entity = ? AND o.observed_at >= ? AND o.format IS NOT NULL
+            WHERE e.entity = ? AND e.entity_type IS NOT NULL AND o.observed_at >= ? AND o.format IS NOT NULL
             GROUP BY o.format
             ORDER BY vis DESC
             LIMIT 1
