@@ -61,6 +61,24 @@ Register-DI -Name "DiscoverIntel_Backup"         -Script "run-backup.ps1"       
 Register-DI -Name "DiscoverIntel_Vacuum"         -Script "run-vacuum.ps1"          -Triggers $t_vac
 Register-DI -Name "DiscoverIntel_DBStats"        -Script "run-dbstats.ps1"         -Triggers $t_dbstats
 
+# ---- Sprint 2 additions ----
+
+# 2-hour cadence tasks, staggered by 15 min so resolver -> matcher -> tagger
+# proceeds in order (Task Scheduler doesn't do dependencies natively).
+$t_resolve = New-ScheduledTaskTrigger -Once -At $now `
+  -RepetitionInterval (New-TimeSpan -Hours 2) -RepetitionDuration ([TimeSpan]::MaxValue)
+$t_match = New-ScheduledTaskTrigger -Once -At ($now.AddMinutes(15)) `
+  -RepetitionInterval (New-TimeSpan -Hours 2) -RepetitionDuration ([TimeSpan]::MaxValue)
+$t_tag = New-ScheduledTaskTrigger -Once -At ($now.AddMinutes(30)) `
+  -RepetitionInterval (New-TimeSpan -Hours 2) -RepetitionDuration ([TimeSpan]::MaxValue)
+# TOI GA daily at 04:30 (after ET GSC at 04:00)
+$t_toi = New-ScheduledTaskTrigger -Daily -At ([DateTime]"04:30")
+
+Register-DI -Name "DiscoverIntel_ResolveUrls"   -Script "run-resolve-urls.ps1"   -Triggers $t_resolve
+Register-DI -Name "DiscoverIntel_MatchOutcomes" -Script "run-match-outcomes.ps1" -Triggers $t_match
+Register-DI -Name "DiscoverIntel_TagEntities"   -Script "run-tag-entities.ps1"   -Triggers $t_tag
+Register-DI -Name "DiscoverIntel_ToiGa"         -Script "run-toi-ga.ps1"         -Triggers $t_toi
+
 Write-Host ""
 Write-Host "Task Scheduler summary:"
 Get-ScheduledTask -TaskName "DiscoverIntel_*" | Format-Table TaskName, State

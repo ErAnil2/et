@@ -2,7 +2,9 @@ $ErrorActionPreference = "Continue"
 $names = @(
   "DiscoverIntel_Feeds", "DiscoverIntel_YouTube", "DiscoverIntel_ImportDiscover",
   "DiscoverIntel_GSC", "DiscoverIntel_Backup", "DiscoverIntel_Vacuum",
-  "DiscoverIntel_DBStats"
+  "DiscoverIntel_DBStats",
+  "DiscoverIntel_ResolveUrls", "DiscoverIntel_MatchOutcomes",
+  "DiscoverIntel_TagEntities", "DiscoverIntel_ToiGa"
 )
 foreach ($n in $names) {
   $t = Get-ScheduledTask -TaskName $n -ErrorAction SilentlyContinue
