@@ -16,7 +16,7 @@ def test_v2_schema_applies_cleanly(tmp_path: Path):
 
     conn = sqlite3.connect(str(db_path))
     (uv,) = conn.execute("PRAGMA user_version").fetchone()
-    assert uv == 2
+    assert uv == 3  # bumped by Sprint 3
 
     tables = {r[0] for r in conn.execute(
         "SELECT name FROM sqlite_master WHERE type='table'"
