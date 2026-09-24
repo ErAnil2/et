@@ -6,6 +6,7 @@ import datetime as dt
 import json
 import logging
 import sqlite3
+import time as _time
 from pathlib import Path
 
 import yaml
@@ -162,3 +163,100 @@ def score_entity(conn: sqlite3.Connection, market: str, entity: str,
         "suggested_format": suggested,
         "evidence_json": _gather_evidence(conn, entity, stats),
     }
+
+
+def persist_scores(conn: sqlite3.Connection, rows: list[dict]) -> None:
+    for r in rows:
+        conn.execute(
+            "INSERT OR REPLACE INTO topic_scores "
+            "(scored_at, market, entity, tos, momentum, headroom, timing, "
+            "format_match, lane_fit, suggested_format, evidence_json) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (r["scored_at"], r["market"], r["entity"], r["tos"],
+             r["momentum"], r["headroom"], r["timing"], r["format_match"],
+             r["lane_fit"], r["suggested_format"], r["evidence_json"]),
+        )
+    conn.commit()
+
+
+def _iso_now() -> str:
+    return dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def orchestrate(conn: sqlite3.Connection, market: str = "US",
+                config_path: str | Path | None = None,
+                dry_run: bool = False) -> dict:
+    """Score every entity present in topic_stats for the market."""
+    t0 = _time.monotonic()
+    if config_path is None:
+        config_path = Path("config/scoring.yaml")
+    if not Path(config_path).exists():
+        log.warning("tos: %s not found; using defaults", config_path)
+        line = "tos: 0 entities scored, 0 publish (>=60), 0 watchlist (45-60), 0 below in 0.0s"
+        print(line)
+        return {"scored": 0, "publish": 0, "watchlist": 0, "below": 0}
+    cfg = load_scoring_config(config_path)
+    scored_at = _iso_now()
+
+    entities = [
+        r[0] for r in conn.execute(
+            "SELECT DISTINCT entity FROM topic_stats WHERE market = ?",
+            (market,),
+        ).fetchall()
+    ]
+
+    if not entities:
+        elapsed = _time.monotonic() - t0
+        line = (
+            f"tos: 0 entities scored, 0 publish (>=60), 0 watchlist (45-60), "
+            f"0 below in {elapsed:.1f}s"
+        )
+        print(line)
+        return {"scored": 0, "publish": 0, "watchlist": 0, "below": 0}
+
+    raw_momentum: list[float] = []
+    raw_timing: list[float] = []
+    decay_h = float(cfg["tos"]["timing"]["freshness_decay_hours"])
+    for entity in entities:
+        stats = _latest_topic_stats_for_entity(conn, market, entity)
+        if not stats:
+            continue
+        raw_momentum.append(momentum(stats["new_items"], prior_48h_mean_per_6h=1.0))
+        hours = _hours_since(stats["hour_utc"], scored_at)
+        raw_timing.append(timing(stats["avg_time_on_feed_min"], hours, decay_h))
+    candidate_stats = {"momentum": raw_momentum, "timing": raw_timing}
+
+    rows: list[dict] = []
+    for entity in entities:
+        row = score_entity(conn, market=market, entity=entity, config=cfg,
+                           scored_at=scored_at, candidate_stats=candidate_stats)
+        rows.append(row)
+
+    if not dry_run:
+        persist_scores(conn, rows)
+
+    publish_t = float(cfg["tos"]["thresholds"]["publish"])
+    watchlist_t = float(cfg["tos"]["thresholds"]["watchlist"])
+    publish = sum(1 for r in rows if r["tos"] >= publish_t)
+    watchlist = sum(1 for r in rows if watchlist_t <= r["tos"] < publish_t)
+    below = sum(1 for r in rows if r["tos"] < watchlist_t)
+    elapsed = _time.monotonic() - t0
+    line = (
+        f"tos: {len(rows)} entities scored, {publish} publish (>={int(publish_t)}), "
+        f"{watchlist} watchlist ({int(watchlist_t)}-{int(publish_t)}), "
+        f"{below} below in {elapsed:.1f}s"
+    )
+    log.info(line)
+    print(line)
+    return {"scored": len(rows), "publish": publish, "watchlist": watchlist,
+            "below": below}
+
+
+def main(args) -> int:
+    from discover_intel import db as db_mod
+    conn = db_mod.connect(args.db)
+    try:
+        orchestrate(conn, market=args.market, dry_run=args.dry_run)
+        return 0
+    finally:
+        conn.close()

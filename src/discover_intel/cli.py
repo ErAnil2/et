@@ -113,6 +113,12 @@ def _build_parser() -> argparse.ArgumentParser:
     p_bts.add_argument("--window-hours", type=int, default=72, dest="window_hours")
     p_bts.add_argument("--dry-run", action="store_true")
 
+    p_tos = sub.add_parser("tos",
+                           help="score every entity in topic_stats -> topic_scores")
+    p_tos.add_argument("--db", required=True)
+    p_tos.add_argument("--market", default="US")
+    p_tos.add_argument("--dry-run", action="store_true")
+
     return p
 
 
@@ -194,6 +200,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.cmd == "build-topic-stats":
         from discover_intel.analysis.build_topic_stats import main as bts_main
         return bts_main(args)
+    if args.cmd == "tos":
+        from discover_intel.scoring.tos import main as tos_main
+        return tos_main(args)
     print(f"{args.cmd}: not implemented yet", file=sys.stderr)
     return 2
 
