@@ -113,6 +113,7 @@ def cmd_db_stats(args: argparse.Namespace) -> int:
     tables = [
         "sources", "items", "feed_polls", "discover_articles",
         "discover_snapshots", "gsc_discover",
+        "item_outcomes", "taxonomy", "item_entities",
     ]
     counts = {}
     for t in tables:
