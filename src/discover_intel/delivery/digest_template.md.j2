@@ -1,0 +1,22 @@
+# US Discover Digest — {{ timestamp }}
+
+{% if topics|length == 0 -%}
+No topics above the publish threshold.
+
+The pipeline was empty at this run — this is expected on a cold-start
+warehouse. Once feeds have polled + tagger has run + TOS has scored,
+future digests will populate.
+{%- else -%}
+{{ topics|length }} topics above TOS >= {{ publish_threshold }}.
+{% for t in topics %}
+
+## {{ t.entity }}  ·  TOS {{ '%.1f' | format(t.tos) }}
+
+**Suggested format:** {{ t.suggested_format }}
+
+**Why:** {% if t.top_title %}"{{ t.top_title }}" ({{ t.top_host }}).{% endif %}
+Winning on {{ t.competitor_hosts|length }} competitor host(s){% if t.beat_queries|length > 0 %}; beat queries firing: {{ t.beat_queries[:2]|join(', ') }}{% endif %}.
+
+**Headline pattern:** {{ t.headline_pattern }}
+{% endfor -%}
+{%- endif %}

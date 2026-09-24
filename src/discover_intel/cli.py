@@ -131,6 +131,13 @@ def _build_parser() -> argparse.ArgumentParser:
                        help="path to a JSON file with draft fields")
     p_drs.add_argument("--db", default="data/warehouse.db")
 
+    p_dig = sub.add_parser("digest",
+                           help="render top-N topic_scores as Markdown digest")
+    p_dig.add_argument("--db", required=True)
+    p_dig.add_argument("--top", type=int, default=15)
+    p_dig.add_argument("--out", default="data/digests")
+    p_dig.add_argument("--dry-run", action="store_true")
+
     return p
 
 
@@ -218,6 +225,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.cmd == "drs":
         from discover_intel.scoring.drs import main as drs_main
         return drs_main(args)
+    if args.cmd == "digest":
+        from discover_intel.delivery.slack_digest import main as digest_main
+        return digest_main(args)
     print(f"{args.cmd}: not implemented yet", file=sys.stderr)
     return 2
 
