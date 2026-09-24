@@ -79,6 +79,22 @@ Register-DI -Name "DiscoverIntel_MatchOutcomes" -Script "run-match-outcomes.ps1"
 Register-DI -Name "DiscoverIntel_TagEntities"   -Script "run-tag-entities.ps1"   -Triggers $t_tag
 Register-DI -Name "DiscoverIntel_ToiGa"         -Script "run-toi-ga.ps1"         -Triggers $t_toi
 
+# ---- Sprint 3 additions ----
+
+# BuildTopicStats: every 2h at +45 min offset from Sprint 2's resolver (:00)
+$t_bts = New-ScheduledTaskTrigger -Once -At ($now.AddMinutes(45)) `
+  -RepetitionInterval (New-TimeSpan -Hours 2) -RepetitionDuration ([TimeSpan]::MaxValue)
+# TOS: every 2h at +60 min offset (top of next hour)
+$t_tos = New-ScheduledTaskTrigger -Once -At ($now.AddMinutes(60)) `
+  -RepetitionInterval (New-TimeSpan -Hours 2) -RepetitionDuration ([TimeSpan]::MaxValue)
+# Digest: twice daily at 11:00 UTC and 17:00 UTC
+$t_digest_11 = New-ScheduledTaskTrigger -Daily -At ([DateTime]::SpecifyKind([DateTime]"11:00", [DateTimeKind]::Utc)).ToLocalTime()
+$t_digest_17 = New-ScheduledTaskTrigger -Daily -At ([DateTime]::SpecifyKind([DateTime]"17:00", [DateTimeKind]::Utc)).ToLocalTime()
+
+Register-DI -Name "DiscoverIntel_BuildTopicStats" -Script "run-build-topic-stats.ps1" -Triggers $t_bts
+Register-DI -Name "DiscoverIntel_TOS"             -Script "run-tos.ps1"               -Triggers $t_tos
+Register-DI -Name "DiscoverIntel_Digest"          -Script "run-digest.ps1"            -Triggers @($t_digest_11, $t_digest_17)
+
 Write-Host ""
 Write-Host "Task Scheduler summary:"
 Get-ScheduledTask -TaskName "DiscoverIntel_*" | Format-Table TaskName, State
