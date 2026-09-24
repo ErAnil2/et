@@ -5,7 +5,8 @@ $names = @(
   "DiscoverIntel_DBStats",
   "DiscoverIntel_ResolveUrls", "DiscoverIntel_MatchOutcomes",
   "DiscoverIntel_TagEntities", "DiscoverIntel_ToiGa",
-  "DiscoverIntel_BuildTopicStats", "DiscoverIntel_TOS", "DiscoverIntel_Digest"
+  "DiscoverIntel_BuildTopicStats", "DiscoverIntel_TOS", "DiscoverIntel_Digest",
+  "DiscoverIntel_Scorecard"
 )
 foreach ($n in $names) {
   $t = Get-ScheduledTask -TaskName $n -ErrorAction SilentlyContinue

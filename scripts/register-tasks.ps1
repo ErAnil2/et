@@ -95,6 +95,14 @@ Register-DI -Name "DiscoverIntel_BuildTopicStats" -Script "run-build-topic-stats
 Register-DI -Name "DiscoverIntel_TOS"             -Script "run-tos.ps1"               -Triggers $t_tos
 Register-DI -Name "DiscoverIntel_Digest"          -Script "run-digest.ps1"            -Triggers @($t_digest_11, $t_digest_17)
 
+# ---- Sprint 4 additions ----
+
+# Weekly Monday 06:00 UTC scorecard
+$t_scorecard = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday `
+  -At ([DateTime]::SpecifyKind([DateTime]"06:00", [DateTimeKind]::Utc)).ToLocalTime()
+
+Register-DI -Name "DiscoverIntel_Scorecard"       -Script "run-scorecard.ps1"         -Triggers $t_scorecard
+
 Write-Host ""
 Write-Host "Task Scheduler summary:"
 Get-ScheduledTask -TaskName "DiscoverIntel_*" | Format-Table TaskName, State
