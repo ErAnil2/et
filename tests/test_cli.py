@@ -23,7 +23,7 @@ def test_init_db_creates_warehouse(tmp_path: Path):
     )
     assert db_path.exists()
     (uv,) = sqlite3.connect(str(db_path)).execute("PRAGMA user_version").fetchone()
-    assert uv == 2
+    assert uv == 3
     assert "init-db" in r.stdout
 
 

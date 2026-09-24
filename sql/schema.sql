@@ -1,4 +1,4 @@
-PRAGMA user_version = 2;
+PRAGMA user_version = 3;
 
 CREATE TABLE IF NOT EXISTS sources (
   source_id     TEXT PRIMARY KEY,
@@ -145,5 +145,61 @@ CREATE INDEX IF NOT EXISTS idx_item_entities_source ON item_entities(source_key)
 CREATE INDEX IF NOT EXISTS idx_item_entities_ent    ON item_entities(entity);
 CREATE INDEX IF NOT EXISTS idx_item_entities_tax    ON item_entities(taxonomy_id);
 
--- Reserved table names for future sprints (do not create yet):
---   Sprint 3: topic_stats, topic_scores, article_scores
+-- ============================================================================
+-- Sprint 3 additions (added 2026-09-24). CREATE TABLE IF NOT EXISTS so
+-- warehouses upgrade cleanly — only the new tables get created.
+-- ============================================================================
+
+-- Written by S3-A analysis/build_topic_stats.py. Rolling 72h snapshot per
+-- (hour_bucket, market, entity). INSERT OR REPLACE on compound PK.
+CREATE TABLE IF NOT EXISTS topic_stats (
+  hour_utc              TEXT NOT NULL,
+  market                TEXT NOT NULL,
+  entity                TEXT NOT NULL,
+  new_items             INTEGER NOT NULL DEFAULT 0,
+  competitor_hosts      INTEGER NOT NULL DEFAULT 0,
+  gnews_query_hits      INTEGER NOT NULL DEFAULT 0,
+  discover_obs          INTEGER NOT NULL DEFAULT 0,
+  discover_visibility   REAL NOT NULL DEFAULT 0.0,
+  avg_time_on_feed_min  REAL,
+  winning_format        TEXT,
+  PRIMARY KEY (hour_utc, market, entity)
+);
+CREATE INDEX IF NOT EXISTS idx_topic_stats_market_hour ON topic_stats(market, hour_utc DESC);
+CREATE INDEX IF NOT EXISTS idx_topic_stats_entity     ON topic_stats(entity, hour_utc DESC);
+
+-- Written by S3-B scoring/tos.py. One row per scoring run per (market, entity).
+-- History preserved for Sprint 4 scorecard.
+CREATE TABLE IF NOT EXISTS topic_scores (
+  scored_at         TEXT NOT NULL,
+  market            TEXT NOT NULL,
+  entity            TEXT NOT NULL,
+  tos               REAL NOT NULL,
+  momentum          REAL NOT NULL,
+  headroom          REAL NOT NULL,
+  timing            REAL NOT NULL,
+  format_match      REAL NOT NULL,
+  lane_fit          REAL NOT NULL,
+  suggested_format  TEXT,
+  evidence_json     TEXT NOT NULL,
+  PRIMARY KEY (scored_at, market, entity)
+);
+CREATE INDEX IF NOT EXISTS idx_topic_scores_market_at ON topic_scores(market, scored_at DESC);
+CREATE INDEX IF NOT EXISTS idx_topic_scores_tos       ON topic_scores(tos DESC, scored_at DESC);
+
+-- Written by S3-C scoring/drs.py. One row per pre-publish check.
+CREATE TABLE IF NOT EXISTS article_scores (
+  scored_at     TEXT NOT NULL,
+  draft_id      TEXT NOT NULL,
+  drs           REAL NOT NULL,
+  headline      REAL NOT NULL,
+  image         REAL NOT NULL,
+  eeat          REAL NOT NULL,
+  originality   REAL NOT NULL,
+  timeliness    REAL NOT NULL,
+  technical     REAL NOT NULL,
+  findings_json TEXT NOT NULL,
+  PRIMARY KEY (scored_at, draft_id)
+);
+CREATE INDEX IF NOT EXISTS idx_article_scores_draft ON article_scores(draft_id, scored_at DESC);
+CREATE INDEX IF NOT EXISTS idx_article_scores_drs   ON article_scores(drs DESC, scored_at DESC);

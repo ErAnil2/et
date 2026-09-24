@@ -14,4 +14,4 @@ def test_schema_loads_and_creates_six_tables():
             "discover_snapshots", "gsc_discover"} <= tables
 
     (uv,) = conn.execute("PRAGMA user_version").fetchone()
-    assert uv == 2  # bumped in Sprint 2 (schema.sql PRAGMA)
+    assert uv == 3  # bumped in Sprint 2 (schema.sql PRAGMA)
