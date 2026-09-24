@@ -177,3 +177,59 @@ Until both are done, `discover_intel toi-ga` will 403 with a remediation message
 6. `.\scripts\register-tasks.ps1` → installs all 11 tasks (7 Sprint 1 + 4 Sprint 2).
 
 7. `pytest tests\ -q` → all tests pass.
+
+---
+
+## Sprint 3 (Scoring & Delivery)
+
+Sprint 3 layers scoring + delivery onto the Sprint 2 tagged warehouse:
+hourly topic aggregation (S3-A), TOS ranking (S3-B), pre-publish DRS
+(S3-C), twice-daily Markdown digest (S3-D-1), and a 5-tab Streamlit
+dashboard (S3-D-2).
+
+**Spec:** `docs/superpowers/specs/2026-09-24-sprint-3-scoring-delivery-design.md`.
+**Plan:** `docs/superpowers/plans/2026-09-24-sprint-3-scoring-delivery.md`.
+
+### Sprint 3 first-time setup
+
+```powershell
+# 1. Reinstall to pick up v0.3 deps (streamlit, plotly, jinja2)
+.\.venv\Scripts\Activate.ps1
+pip install -e ".[dev]"
+
+# 2. Reapply schema (idempotent - adds v3 tables if missing)
+python -m discover_intel init-db --db data\warehouse.db
+
+# 3. Reinstall scheduled tasks (adds 3 new ones)
+.\scripts\register-tasks.ps1
+```
+
+**No new external prerequisites** — Sprint 3 uses only the warehouse
+and configuration files (`config/scoring.yaml`, `config/clickbait_patterns.txt`).
+Tune scoring weights and thresholds in `config/scoring.yaml` without
+touching Python.
+
+### Sprint 3 acceptance smoke commands
+
+1. `python -m discover_intel build-topic-stats --db data\warehouse.db` → populates `topic_stats`.
+
+2. `python -m discover_intel tos --db data\warehouse.db` → populates `topic_scores`. Prints counts per threshold tier.
+
+3. `python -m discover_intel drs --title "Fed cuts rates by 25 bps as Powell signals slower path" --image-width 1600 --author "Jane Doe" --published-at 2026-09-24T15:00:00Z --db data\warehouse.db` → prints DRS score (≥60 expected); writes to `article_scores`.
+
+4. `python -m discover_intel drs --title "You won't believe what happened next..." --image-width 1600 --author "Jane Doe" --published-at 2026-09-24T15:00:00Z --db data\warehouse.db` → DRS < 70 (headline component = 0 due to clickbait pattern).
+
+5. `python -m discover_intel digest --db data\warehouse.db` → writes `data\digests\<UTC>.md` + `data\digests\latest.md`. Up to 15 topics ≥ TOS 60.
+
+6. `python -m discover_intel dashboard --db data\warehouse.db` → launches Streamlit on http://localhost:8501; 5 tabs render.
+
+7. `python -m discover_intel db-stats --db data\warehouse.db` → shows non-zero counts for topic_stats, topic_scores, article_scores.
+
+8. `.\scripts\register-tasks.ps1` → installs all 14 tasks; `Get-ScheduledTask -TaskName "DiscoverIntel_*"` shows them all `Ready`.
+
+9. `pytest tests\ -q` — all Sprint 1 + 2 + 3 tests pass.
+
+### Tuning knobs
+
+- **`config/scoring.yaml`** — TOS weights, DRS weights, thresholds (publish, watchlist, DRS gate), headroom curve, timing decay, producible formats, YMYL lanes, suggested headline patterns.
+- **`config/clickbait_patterns.txt`** — one regex per line; DRS headline check reads at startup.
